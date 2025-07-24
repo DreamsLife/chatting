@@ -81,6 +81,17 @@
       background: #075e54;
     }
 
+    #resetBtn {
+      background: #f44336;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      border-radius: 10px;
+      font-size: 14px;
+      cursor: pointer;
+      margin-left: 10px;
+    }
+
     @media screen and (max-width: 600px) {
       #header {
         font-size: 16px;
@@ -99,7 +110,10 @@
 <body>
 
   <div id="header">
-    <div id="welcome">Welcome</div>
+    <div>
+      <span id="welcome">Welcome</span>
+      <button id="resetBtn" onclick="resetChat()">Reset Chat</button>
+    </div>
     <div id="time"></div>
   </div>
 
@@ -128,7 +142,7 @@
       userName = prompt("Enter your name:");
       if (!userName) return location.reload();
       const pass = prompt("Enter password:");
-      const correctPassword = "123456"; // Change this as needed
+      const correctPassword = "avibrata"; // Change this as needed
       if (pass !== correctPassword) {
         alert("Incorrect password!");
         location.reload();
@@ -136,17 +150,17 @@
       document.getElementById('welcome').innerText = "Welcome, " + userName;
     }
 
-    // 🧠 Initialize Firebase (Replace with your actual config)
+    // 🧠 Initialize Firebase
     const firebaseConfig = {
-    apiKey: "AIzaSyChEs8F4Jf8r7ivDIXV0nrH_RkPrs8J0XM",
-    authDomain: "online-chat-dm.firebaseapp.com",
-    projectId: "online-chat-dm",
-    storageBucket: "online-chat-dm.appspot.com",
-    messagingSenderId: "237057888481",
-    appId: "1:237057888481:web:1d10683fcc2e4c2a0aa7a0",
-    measurementId: "G-HN9VMT1CBQ",
-    databaseURL: "https://online-chat-dm-default-rtdb.firebaseio.com/"
-  };
+      apiKey: "AIzaSyChEs8F4Jf8r7ivDIXV0nrH_RkPrs8J0XM",
+      authDomain: "online-chat-dm.firebaseapp.com",
+      projectId: "online-chat-dm",
+      storageBucket: "online-chat-dm.appspot.com",
+      messagingSenderId: "237057888481",
+      appId: "1:237057888481:web:1d10683fcc2e4c2a0aa7a0",
+      measurementId: "G-HN9VMT1CBQ",
+      databaseURL: "https://online-chat-dm-default-rtdb.firebaseio.com/"
+    };
 
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
@@ -169,7 +183,7 @@
       }
     }
 
-    // ⏱️ Load messages in real time
+    // ⏱️ Load messages
     db.ref("messages").on("child_added", snapshot => {
       const msg = snapshot.val();
       const div = document.createElement("div");
@@ -180,7 +194,15 @@
       chat.scrollTop = chat.scrollHeight;
     });
 
-    // ⌨️ Press Enter to send
+    // 🗑 Reset Chat
+    function resetChat() {
+      if (confirm("Are you sure you want to delete all messages?")) {
+        db.ref("messages").remove();
+        chat.innerHTML = "";
+      }
+    }
+
+    // ⌨️ Enter to send
     messageInput.addEventListener("keydown", function (e) {
       if (e.key === "Enter" && !e.shiftKey) {
         e.preventDefault();
