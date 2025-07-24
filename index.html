@@ -85,22 +85,16 @@
   const chatInput = document.getElementById('chatInput');
   const resetBtn = document.getElementById('resetBtn');
 
-  // SHA-256 hashing function
-  async function hashPassword(password) {
-    const enc = new TextEncoder();
-    const buffer = await crypto.subtle.digest("SHA-256", enc.encode(password));
-    return Array.from(new Uint8Array(buffer)).map(b => b.toString(16).padStart(2, '0')).join('');
-  }
-
-  // Login and password
+  // Login with plain password
   let userName = '';
   async function authenticate() {
     userName = prompt("Enter your name:");
     if (!userName) return location.reload();
+
     const pass = prompt("Enter password to join chat:");
-    const hash = await hashPassword(pass);
-    const correctHash = "5e1f22785a8fdbf6b66261e82b72c4f8fc7b0e4cc313ded802869637a4cc2e07"; // hash of 'avibrata'
-    if (hash !== correctHash) {
+    const correctPassword = "avibrata";
+
+    if (pass !== correctPassword) {
       alert("Incorrect password!");
       location.reload();
     }
@@ -133,7 +127,7 @@
       chatBox.scrollTop = chatBox.scrollHeight;
     });
 
-    // Store session id
+    // Store session ID
     if (!sessionStorage.getItem("uid")) {
       sessionStorage.setItem("uid", Date.now().toString());
     }
@@ -146,7 +140,7 @@
       }
     });
 
-    // Auto-delete user messages on tab close
+    // Remove user messages on tab close
     window.addEventListener('beforeunload', function () {
       const currentSession = sessionStorage.getItem("uid");
       db.ref("messages").once("value", function(snapshot) {
