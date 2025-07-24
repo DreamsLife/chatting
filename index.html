@@ -1,91 +1,133 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Secure Real-Time Chat</title>
+  <meta charset="UTF-8">
+  <title>Real-Time Chat</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body {
       margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(to right, #1c1c1c, #444);
-      color: #fff;
+      font-family: Arial, sans-serif;
+      background: #f0f2f5;
     }
-    #chatBox {
-      height: 85vh;
-      overflow-y: auto;
-      padding: 10px;
-      background: rgba(255, 255, 255, 0.05);
-      backdrop-filter: blur(5px);
+    #login {
       display: flex;
       flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background: #fff;
     }
-    #chatInput {
-      width: calc(100% - 100px);
-      padding: 15px;
-      font-size: 16px;
-      border: none;
-      outline: none;
-    }
-    .message {
-      max-width: 70%;
-      padding: 10px;
+    #login input {
+      padding: 12px;
       margin: 8px;
-      border-radius: 10px;
-      position: relative;
-      word-wrap: break-word;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      width: 80%;
+      border-radius: 5px;
     }
-    .my-message {
-      align-self: flex-end;
-      background: #00796b;
-      border-bottom-right-radius: 0;
-      text-align: right;
-    }
-    .other-message {
-      align-self: flex-start;
-      background: #333;
-      border-bottom-left-radius: 0;
-      text-align: left;
-    }
-    .name {
-      font-weight: bold;
-      color: #00f7ff;
-      font-size: 12px;
-      display: block;
-      margin-bottom: 5px;
-    }
-    #controls {
-      display: flex;
-      background: #222;
-      padding: 10px;
-      box-shadow: 0 -2px 5px #000;
-    }
-    #resetBtn {
-      width: 100px;
-      background: #ff1744;
+    #login button {
+      padding: 10px 20px;
+      font-size: 16px;
+      background: #4CAF50;
       color: white;
       border: none;
-      font-weight: bold;
-      cursor: pointer;
       border-radius: 5px;
-      margin-left: 10px;
+      cursor: pointer;
     }
-    #resetBtn:hover {
-      background: #d50000;
+
+    #chatPage {
+      display: none;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    header {
+      padding: 10px;
+      background: #4CAF50;
+      color: white;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    #messages {
+      flex: 1;
+      padding: 10px;
+      overflow-y: auto;
+    }
+
+    .message {
+      max-width: 70%;
+      margin: 5px 0;
+      padding: 10px;
+      border-radius: 10px;
+      clear: both;
+    }
+
+    .right {
+      background: #DCF8C6;
+      margin-left: auto;
+      text-align: right;
+    }
+
+    .left {
+      background: #fff;
+      margin-right: auto;
+      text-align: left;
+    }
+
+    footer {
+      display: flex;
+      padding: 10px;
+      background: #eee;
+    }
+
+    footer input {
+      flex: 1;
+      padding: 10px;
+      font-size: 16px;
+      border-radius: 20px;
+      border: 1px solid #ccc;
+    }
+
+    footer button {
+      padding: 10px;
+      margin-left: 10px;
+      border: none;
+      background: #4CAF50;
+      color: white;
+      border-radius: 20px;
     }
   </style>
 </head>
 <body>
 
-<div id="chatBox"></div>
-<div id="controls">
-  <input type="text" id="chatInput" placeholder="Type your message and press Enter..."/>
-  <button id="resetBtn">Reset Chat</button>
+<div id="login">
+  <h2>Join Chat</h2>
+  <input type="text" id="name" placeholder="Enter your name">
+  <input type="password" id="password" placeholder="Enter password">
+  <button onclick="login()">Enter</button>
 </div>
 
-<!-- Firebase SDK -->
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+<div id="chatPage">
+  <header>
+    <div id="welcome">Welcome</div>
+    <div id="clock"></div>
+  </header>
+  <div id="messages"></div>
+  <footer>
+    <input type="text" id="msgInput" placeholder="Type a message...">
+    <button onclick="sendMessage()">Send</button>
+  </footer>
+</div>
+
+<!-- Firebase CDN -->
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
 
 <script>
+  // 🔑 Replace with your Firebase config
   const firebaseConfig = {
     apiKey: "AIzaSyChEs8F4Jf8r7ivDIXV0nrH_RkPrs8J0XM",
     authDomain: "online-chat-dm.firebaseapp.com",
@@ -100,74 +142,50 @@
   firebase.initializeApp(firebaseConfig);
   const db = firebase.database();
 
-  const chatBox = document.getElementById('chatBox');
-  const chatInput = document.getElementById('chatInput');
-  const resetBtn = document.getElementById('resetBtn');
+  let userName = "";
 
-  let userName = '';
-  let sessionId = '';
+  function login() {
+    const name = document.getElementById('name').value.trim();
+    const password = document.getElementById('password').value;
+    if (!name || !password) return alert("Fill all fields");
 
-  async function authenticate() {
-    userName = prompt("Enter your name:");
-    if (!userName) return location.reload();
+    if (password !== "avibrata") return alert("Wrong password");
 
-    const pass = prompt("Enter password to join chat:");
-    const correctPassword = "avibrata";
+    userName = name;
+    document.getElementById('login').style.display = "none";
+    document.getElementById('chatPage').style.display = "flex";
+    document.getElementById('welcome').innerText = "Welcome, " + name;
 
-    if (pass !== correctPassword) {
-      alert("Incorrect password!");
-      location.reload();
-    }
+    listenMessages();
   }
 
-  authenticate().then(() => {
-    sessionId = sessionStorage.getItem("uid") || Date.now().toString();
-    sessionStorage.setItem("uid", sessionId);
-
-    chatInput.addEventListener('keypress', function(e) {
-      if (e.key === 'Enter' && chatInput.value.trim() !== '') {
-        const encodedMsg = btoa(chatInput.value.trim());
-        const encodedName = btoa(userName);
-        db.ref("messages").push({
-          name: encodedName,
-          text: encodedMsg,
-          time: Date.now(),
-          session: sessionId
-        });
-        chatInput.value = '';
-      }
+  function sendMessage() {
+    const msg = document.getElementById('msgInput').value.trim();
+    if (!msg) return;
+    db.ref("messages").push({
+      name: userName,
+      message: msg,
+      time: new Date().toLocaleTimeString()
     });
+    document.getElementById('msgInput').value = "";
+  }
 
-    db.ref("messages").on('child_added', function(snapshot) {
+  function listenMessages() {
+    db.ref("messages").on("child_added", snapshot => {
       const msg = snapshot.val();
-      const div = document.createElement('div');
-      const decodedName = atob(msg.name);
-      const decodedText = atob(msg.text);
-
-      const isMine = msg.session === sessionId;
-      div.className = 'message ' + (isMine ? 'my-message' : 'other-message');
-      div.innerHTML = `<span class="name">${decodedName}</span>${decodedText}`;
-      chatBox.appendChild(div);
-      chatBox.scrollTop = chatBox.scrollHeight;
+      const div = document.createElement("div");
+      div.className = "message " + (msg.name === userName ? "right" : "left");
+      div.innerHTML = `<strong>${msg.name}:</strong> ${msg.message}<br><small>${msg.time}</small>`;
+      document.getElementById('messages').appendChild(div);
+      document.getElementById('messages').scrollTop = document.getElementById('messages').scrollHeight;
     });
+  }
 
-    resetBtn.addEventListener('click', function () {
-      if (confirm("Are you sure you want to reset all messages?")) {
-        db.ref("messages").remove();
-        chatBox.innerHTML = '';
-      }
-    });
-
-    window.addEventListener('beforeunload', function () {
-      db.ref("messages").once("value", function(snapshot) {
-        snapshot.forEach(child => {
-          if (child.val().session == sessionId) {
-            db.ref("messages").child(child.key).remove();
-          }
-        });
-      });
-    });
-  });
+  // 🕒 Clock
+  setInterval(() => {
+    const now = new Date();
+    document.getElementById("clock").innerText = now.toLocaleString();
+  }, 1000);
 </script>
 </body>
 </html>
