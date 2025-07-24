@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Real-Time Chat</title>
+  <style>
+    body { font-family: Arial; margin: 0; padding: 0; background: #f4f4f4; }
+    #chatBox { width: 100%; height: 90vh; overflow-y: auto; padding: 10px; box-sizing: border-box; }
+    #chatInput { width: 100%; padding: 10px; box-sizing: border-box; }
+    .message { padding: 5px 10px; margin: 5px 0; border-radius: 8px; background: #e2e2e2; }
+    .name { font-weight: bold; margin-right: 5px; }
+  </style>
+</head>
+<body>
+
+<div id="chatBox"></div>
+<input type="text" id="chatInput" placeholder="Type a message and press Enter..."/>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+<script>
+  // TODO: Replace with your own Firebase config
+  const firebaseConfig = {
+  apiKey: "AIzaSyChEs8F4Jf8r7ivDIXV0nrH_RkPrs8J0XM",
+  authDomain: "online-chat-dm.firebaseapp.com",
+  projectId: "online-chat-dm",
+  storageBucket: "online-chat-dm.firebasestorage.app",
+  messagingSenderId: "237057888481",
+  appId: "1:237057888481:web:1d10683fcc2e4c2a0aa7a0",
+  measurementId: "G-HN9VMT1CBQ"
+};
+
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+
+  // Ask for username
+  let userName = '';
+  while (!userName) {
+    userName = prompt("Enter your name:");
+  }
+
+  const chatBox = document.getElementById('chatBox');
+  const chatInput = document.getElementById('chatInput');
+
+  // Send message
+  chatInput.addEventListener('keypress', function(e) {
+    if (e.key === 'Enter' && chatInput.value.trim() !== '') {
+      db.ref("messages").push({
+        name: userName,
+        text: chatInput.value.trim(),
+        timestamp: Date.now()
+      });
+      chatInput.value = '';
+    }
+  });
+
+  // Show messages
+  db.ref("messages").on('child_added', function(snapshot) {
+    const msg = snapshot.val();
+    const div = document.createElement('div');
+    div.className = 'message';
+    div.innerHTML = `<span class="name">${msg.name}:</span> ${msg.text}`;
+    chatBox.appendChild(div);
+    chatBox.scrollTop = chatBox.scrollHeight;
+  });
+</script>
+</body>
+</html>
