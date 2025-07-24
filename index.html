@@ -1,56 +1,52 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Secure Real-Time Chat</title>
+  <meta charset="UTF-8" />
+  <title>Encrypted Static Chat</title>
   <style>
     body {
-      margin: 0;
       font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(to right, #1c1c1c, #444);
-      color: #fff;
+      background: linear-gradient(to right, #111, #444);
+      margin: 0;
+      color: white;
     }
     #chatBox {
-      height: 85vh;
+      padding: 20px;
+      height: 80vh;
       overflow-y: auto;
-      padding: 10px;
       background: rgba(255, 255, 255, 0.05);
       backdrop-filter: blur(5px);
     }
-    #chatInput {
-      width: calc(100% - 100px);
-      padding: 15px;
-      font-size: 16px;
-      border: none;
-      outline: none;
-    }
     .message {
+      background: rgba(0, 0, 0, 0.4);
       padding: 10px;
       margin: 10px 0;
-      background: rgba(0, 0, 0, 0.4);
-      border-radius: 10px;
+      border-radius: 8px;
     }
     .name {
       font-weight: bold;
-      color: #00f7ff;
+      color: #00ffe0;
     }
     #controls {
       display: flex;
-      background: #222;
       padding: 10px;
-      box-shadow: 0 -2px 5px #000;
+      background: #222;
     }
-    #resetBtn {
-      width: 100px;
-      background: #ff1744;
-      color: white;
-      border: none;
+    #chatInput {
+      flex: 1;
+      padding: 10px;
+      font-size: 16px;
+    }
+    #sendBtn {
+      padding: 10px 20px;
+      background-color: #1de9b6;
+      color: #000;
       font-weight: bold;
+      border: none;
       cursor: pointer;
-      border-radius: 5px;
-      margin-left: 10px;
     }
-    #resetBtn:hover {
-      background: #d50000;
+    #sendBtn:hover {
+      background-color: #00c4a7;
     }
   </style>
 </head>
@@ -58,104 +54,55 @@
 
 <div id="chatBox"></div>
 <div id="controls">
-  <input type="text" id="chatInput" placeholder="Type your message and press Enter..."/>
-  <button id="resetBtn">Reset Chat</button>
+  <input type="text" id="chatInput" placeholder="Type a message..." />
+  <button id="sendBtn">Send</button>
 </div>
 
-<!-- Firebase SDK -->
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-
+<!-- CryptoJS for SHA-256 -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
 <script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyChEs8F4Jf8r7ivDIXV0nrH_RkPrs8J0XM",
-    authDomain: "online-chat-dm.firebaseapp.com",
-    projectId: "online-chat-dm",
-    storageBucket: "online-chat-dm.appspot.com",
-    messagingSenderId: "237057888481",
-    appId: "1:237057888481:web:1d10683fcc2e4c2a0aa7a0",
-    measurementId: "G-HN9VMT1CBQ",
-    databaseURL: "https://online-chat-dm-default-rtdb.firebaseio.com/"
-  };
+  // Hardcoded SHA-256 hash for password "avibrata"
+  const correctHash = "5e1f22785a8fdbf6b66261e82b72c4f8fc7b0e4cc313ded802869637a4cc2e07";
 
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.database();
+  // Prompt for username and password
+  let username = '';
+  let password = '';
 
-  const chatBox = document.getElementById('chatBox');
-  const chatInput = document.getElementById('chatInput');
-  const resetBtn = document.getElementById('resetBtn');
-
-  // SHA-256 hashing function
-  async function hashPassword(password) {
-    const enc = new TextEncoder();
-    const buffer = await crypto.subtle.digest("SHA-256", enc.encode(password));
-    return Array.from(new Uint8Array(buffer)).map(b => b.toString(16).padStart(2, '0')).join('');
-  }
-
-  // Login and password
-  let userName = '';
-  async function authenticate() {
-    userName = prompt("Enter your name:");
-    if (!userName) return location.reload();
-    const pass = prompt("Enter password to join chat:");
-    const hash = await hashPassword(pass);
-    const correctHash = "5e1f22785a8fdbf6b66261e82b72c4f8fc7b0e4cc313ded802869637a4cc2e07"; // hash of 'avibrata'
+  async function checkPassword() {
+    username = prompt("Enter your name:");
+    if (!username) return location.reload();
+    password = prompt("Enter password:");
+    const hash = CryptoJS.SHA256(password).toString();
     if (hash !== correctHash) {
       alert("Incorrect password!");
       location.reload();
     }
   }
 
-  // Run auth
-  authenticate().then(() => {
-    // Send message
-    chatInput.addEventListener('keypress', function(e) {
-      if (e.key === 'Enter' && chatInput.value.trim() !== '') {
-        const encodedMsg = btoa(chatInput.value.trim());
-        const encodedName = btoa(userName);
-        db.ref("messages").push({
-          name: encodedName,
-          text: encodedMsg,
-          time: Date.now(),
-          session: sessionStorage.getItem("uid") || Date.now()
-        });
-        chatInput.value = '';
-      }
-    });
+  checkPassword().then(() => {
+    const chatBox = document.getElementById("chatBox");
+    const chatInput = document.getElementById("chatInput");
+    const sendBtn = document.getElementById("sendBtn");
 
-    // Show messages
-    db.ref("messages").on('child_added', function(snapshot) {
-      const msg = snapshot.val();
-      const div = document.createElement('div');
-      div.className = 'message';
-      div.innerHTML = `<span class="name">${atob(msg.name)}:</span> ${atob(msg.text)}`;
-      chatBox.appendChild(div);
+    function appendMessage(name, text) {
+      const msgDiv = document.createElement("div");
+      msgDiv.className = "message";
+      msgDiv.innerHTML = `<span class="name">${name}:</span> ${text}`;
+      chatBox.appendChild(msgDiv);
       chatBox.scrollTop = chatBox.scrollHeight;
-    });
-
-    // Store session id
-    if (!sessionStorage.getItem("uid")) {
-      sessionStorage.setItem("uid", Date.now().toString());
     }
 
-    // Reset chat
-    resetBtn.addEventListener('click', function () {
-      if (confirm("Are you sure you want to reset all messages?")) {
-        db.ref("messages").remove();
-        chatBox.innerHTML = '';
+    sendBtn.onclick = () => {
+      const msg = chatInput.value.trim();
+      if (msg) {
+        const encoded = btoa(msg); // Base64 encode
+        appendMessage(username, atob(encoded)); // Display decoded
+        chatInput.value = '';
       }
-    });
+    };
 
-    // Auto-delete user messages on tab close
-    window.addEventListener('beforeunload', function () {
-      const currentSession = sessionStorage.getItem("uid");
-      db.ref("messages").once("value", function(snapshot) {
-        snapshot.forEach(child => {
-          if (child.val().session == currentSession) {
-            db.ref("messages").child(child.key).remove();
-          }
-        });
-      });
+    chatInput.addEventListener("keypress", e => {
+      if (e.key === "Enter") sendBtn.click();
     });
   });
 </script>
