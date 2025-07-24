@@ -1,134 +1,143 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Real-Time Chat</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body {
-      margin: 0;
       font-family: Arial, sans-serif;
       background: #f0f2f5;
-    }
-    #login {
+      margin: 0;
+      padding: 0;
       display: flex;
       flex-direction: column;
-      justify-content: center;
-      align-items: center;
       height: 100vh;
-      background: #fff;
     }
-    #login input {
-      padding: 12px;
-      margin: 8px;
-      font-size: 16px;
-      border: 1px solid #ccc;
-      width: 80%;
-      border-radius: 5px;
-    }
-    #login button {
+
+    #header {
+      background-color: #075e54;
+      color: white;
       padding: 10px 20px;
-      font-size: 16px;
-      background: #4CAF50;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-
-    #chatPage {
-      display: none;
-      flex-direction: column;
-      height: 100vh;
-    }
-
-    header {
-      padding: 10px;
-      background: #4CAF50;
-      color: white;
       display: flex;
       justify-content: space-between;
       align-items: center;
+      font-size: 18px;
     }
 
-    #messages {
+    #chat {
       flex: 1;
       padding: 10px;
       overflow-y: auto;
+      display: flex;
+      flex-direction: column;
     }
 
-    .message {
+    .msg {
       max-width: 70%;
-      margin: 5px 0;
       padding: 10px;
+      margin: 5px;
       border-radius: 10px;
-      clear: both;
+      word-wrap: break-word;
     }
 
-    .right {
-      background: #DCF8C6;
-      margin-left: auto;
-      text-align: right;
+    .my-msg {
+      align-self: flex-end;
+      background: #dcf8c6;
     }
 
-    .left {
-      background: #fff;
-      margin-right: auto;
-      text-align: left;
+    .other-msg {
+      align-self: flex-start;
+      background: #ffffff;
     }
 
-    footer {
+    #form {
       display: flex;
       padding: 10px;
-      background: #eee;
+      background: #fff;
     }
 
-    footer input {
+    #message {
       flex: 1;
       padding: 10px;
       font-size: 16px;
-      border-radius: 20px;
       border: 1px solid #ccc;
+      border-radius: 20px;
+      outline: none;
     }
 
-    footer button {
-      padding: 10px;
+    #send {
       margin-left: 10px;
-      border: none;
-      background: #4CAF50;
+      padding: 0 15px;
+      background: #128c7e;
       color: white;
+      border: none;
       border-radius: 20px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    #send:active {
+      background: #075e54;
+    }
+
+    @media screen and (max-width: 600px) {
+      #header {
+        font-size: 16px;
+      }
+
+      #message {
+        font-size: 14px;
+      }
+
+      #send {
+        font-size: 14px;
+      }
     }
   </style>
 </head>
 <body>
 
-<div id="login">
-  <h2>Join Chat</h2>
-  <input type="text" id="name" placeholder="Enter your name">
-  <input type="password" id="password" placeholder="Enter password">
-  <button onclick="login()">Enter</button>
-</div>
-
-<div id="chatPage">
-  <header>
+  <div id="header">
     <div id="welcome">Welcome</div>
-    <div id="clock"></div>
-  </header>
-  <div id="messages"></div>
-  <footer>
-    <input type="text" id="msgInput" placeholder="Type a message...">
-    <button onclick="sendMessage()">Send</button>
-  </footer>
-</div>
+    <div id="time"></div>
+  </div>
 
-<!-- Firebase CDN -->
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+  <div id="chat"></div>
 
-<script>
-  // 🔑 Replace with your Firebase config
-  const firebaseConfig = {
+  <form id="form" onsubmit="sendMessage(event)">
+    <input type="text" id="message" placeholder="Type a message..." autocomplete="off" required />
+    <button type="submit" id="send">Send</button>
+  </form>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+
+  <script>
+    // ⏰ Show date and time
+    setInterval(() => {
+      const now = new Date();
+      document.getElementById('time').textContent =
+        now.toLocaleDateString() + ' ' + now.toLocaleTimeString();
+    }, 1000);
+
+    // 🔐 Login
+    let userName = '';
+    async function authenticate() {
+      userName = prompt("Enter your name:");
+      if (!userName) return location.reload();
+      const pass = prompt("Enter password:");
+      const correctPassword = "123456"; // Change this as needed
+      if (pass !== correctPassword) {
+        alert("Incorrect password!");
+        location.reload();
+      }
+      document.getElementById('welcome').innerText = "Welcome, " + userName;
+    }
+
+    // 🧠 Initialize Firebase (Replace with your actual config)
+    const firebaseConfig = {
     apiKey: "AIzaSyChEs8F4Jf8r7ivDIXV0nrH_RkPrs8J0XM",
     authDomain: "online-chat-dm.firebaseapp.com",
     projectId: "online-chat-dm",
@@ -139,53 +148,47 @@
     databaseURL: "https://online-chat-dm-default-rtdb.firebaseio.com/"
   };
 
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.database();
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
-  let userName = "";
+    const chat = document.getElementById('chat');
+    const form = document.getElementById('form');
+    const messageInput = document.getElementById('message');
 
-  function login() {
-    const name = document.getElementById('name').value.trim();
-    const password = document.getElementById('password').value;
-    if (!name || !password) return alert("Fill all fields");
+    // ✉️ Send message
+    function sendMessage(e) {
+      e.preventDefault();
+      const msg = messageInput.value.trim();
+      if (msg !== "") {
+        db.ref("messages").push({
+          name: userName,
+          text: msg,
+          time: new Date().toLocaleTimeString()
+        });
+        messageInput.value = "";
+      }
+    }
 
-    if (password !== "avibrata") return alert("Wrong password");
-
-    userName = name;
-    document.getElementById('login').style.display = "none";
-    document.getElementById('chatPage').style.display = "flex";
-    document.getElementById('welcome').innerText = "Welcome, " + name;
-
-    listenMessages();
-  }
-
-  function sendMessage() {
-    const msg = document.getElementById('msgInput').value.trim();
-    if (!msg) return;
-    db.ref("messages").push({
-      name: userName,
-      message: msg,
-      time: new Date().toLocaleTimeString()
-    });
-    document.getElementById('msgInput').value = "";
-  }
-
-  function listenMessages() {
+    // ⏱️ Load messages in real time
     db.ref("messages").on("child_added", snapshot => {
       const msg = snapshot.val();
       const div = document.createElement("div");
-      div.className = "message " + (msg.name === userName ? "right" : "left");
-      div.innerHTML = `<strong>${msg.name}:</strong> ${msg.message}<br><small>${msg.time}</small>`;
-      document.getElementById('messages').appendChild(div);
-      document.getElementById('messages').scrollTop = document.getElementById('messages').scrollHeight;
+      div.classList.add("msg");
+      div.classList.add(msg.name === userName ? "my-msg" : "other-msg");
+      div.innerHTML = `<strong>${msg.name}</strong><br>${msg.text}<br><small>${msg.time}</small>`;
+      chat.appendChild(div);
+      chat.scrollTop = chat.scrollHeight;
     });
-  }
 
-  // 🕒 Clock
-  setInterval(() => {
-    const now = new Date();
-    document.getElementById("clock").innerText = now.toLocaleString();
-  }, 1000);
-</script>
+    // ⌨️ Press Enter to send
+    messageInput.addEventListener("keydown", function (e) {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        form.requestSubmit();
+      }
+    });
+
+    authenticate();
+  </script>
 </body>
 </html>
