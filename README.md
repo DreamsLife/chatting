@@ -1,2 +1,2 @@
-# chatting
-chatting platform
+# Chatting
+Chatting Platform
