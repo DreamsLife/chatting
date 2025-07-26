@@ -6,29 +6,27 @@
   <title>Real-Time Chat</title>
   <style>
     body {
-  font-family: Arial, sans-serif;
-  background: url('https://raw.githubusercontent.com/DreamsLife/chatting/refs/heads/main/WhatsApp%20Image%202025-07-26%20at%2022.14.33_dfd7bb1c.jpg') no-repeat center center fixed;
-  background-size: cover;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  position: relative; /* required for ::before */
-  z-index: 0;
-}
+      font-family: Arial, sans-serif;
+      background: url('https://raw.githubusercontent.com/DreamsLife/chatting/refs/heads/main/WhatsApp%20Image%202025-07-26%20at%2022.14.33_dfd7bb1c.jpg') no-repeat center center fixed;
+      background-size: cover;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      position: relative;
+      z-index: 0;
+    }
 
-/* Background overlay with opacity */
-body::before {
-  content: "";
-  position: fixed;
-  top: 0; left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.6); /* adjust 0.4 to change opacity */
-  z-index: -1;
-}
-
+    body::before {
+      content: "";
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.6);
+      z-index: -1;
+    }
 
     #header {
       background-color: rgba(7, 94, 84, 0.9);
@@ -153,7 +151,9 @@ body::before {
     <button type="submit" id="send">Send</button>
   </form>
 
-  <!-- Firebase SDK -->
+  <!-- 🔊 Notification Sound -->
+  <audio id="notifySound" src="https://notificationsounds.com/notification-sounds/pop-alert-112/download/mp3" preload="auto"></audio>
+
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-storage-compat.js"></script>
@@ -173,7 +173,7 @@ body::before {
       document.getElementById('welcome').innerText = "Welcome, " + userName;
     }
 
-    // ⏰ Show time in 12-hour format
+    // ⏰ Time
     setInterval(() => {
       const now = new Date();
       const timeString = now.toLocaleString('en-US', {
@@ -183,7 +183,7 @@ body::before {
       document.getElementById('time').textContent = `${dateString} ${timeString}`;
     }, 1000);
 
-    // 🔥 Firebase config
+    // 🔥 Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyChEs8F4Jf8r7ivDIXV0nrH_RkPrs8J0XM",
       authDomain: "online-chat-dm.firebaseapp.com",
@@ -203,8 +203,17 @@ body::before {
     const messageInput = document.getElementById('message');
     const mediaInput = document.getElementById('mediaUpload');
     const typingStatus = document.getElementById('typingStatus');
+    const notifySound = document.getElementById('notifySound');
 
-    // ✉️ Send text message
+    function getUsernameColor(username) {
+      const colors = ['#e74c3c', '#3498db', '#27ae60', '#8e44ad', '#f39c12', '#1abc9c', '#d35400'];
+      let hash = 0;
+      for (let i = 0; i < username.length; i++) {
+        hash = username.charCodeAt(i) + ((hash << 5) - hash);
+      }
+      return colors[Math.abs(hash % colors.length)];
+    }
+
     function sendMessage(e) {
       e.preventDefault();
       const msg = messageInput.value.trim();
@@ -219,7 +228,6 @@ body::before {
       }
     }
 
-    // 📷 Handle media file upload
     mediaInput.addEventListener("change", function () {
       const file = mediaInput.files[0];
       if (!file) return;
@@ -235,26 +243,30 @@ body::before {
       });
     });
 
-    // 📩 Display messages
     db.ref("messages").on("child_added", snapshot => {
       const msg = snapshot.val();
       const div = document.createElement("div");
       div.classList.add("msg");
       div.classList.add(msg.name === userName ? "my-msg" : "other-msg");
+      const nameColor = getUsernameColor(msg.name);
 
       if (msg.mediaUrl) {
         div.innerHTML = msg.mediaType === "image"
-          ? `<strong>${msg.name}</strong><br><img src="${msg.mediaUrl}" width="200"/><br><small>${msg.time}</small>`
-          : `<strong>${msg.name}</strong><br><video src="${msg.mediaUrl}" controls width="200"></video><br><small>${msg.time}</small>`;
+          ? `<strong style="color:${nameColor}">${msg.name}</strong><br><img src="${msg.mediaUrl}" width="200"/><br><small>${msg.time}</small>`
+          : `<strong style="color:${nameColor}">${msg.name}</strong><br><video src="${msg.mediaUrl}" controls width="200"></video><br><small>${msg.time}</small>`;
       } else {
-        div.innerHTML = `<strong>${msg.name}</strong><br>${msg.text}<br><small>${msg.time}</small>`;
+        div.innerHTML = `<strong style="color:${nameColor}">${msg.name}</strong><br>${msg.text}<br><small>${msg.time}</small>`;
       }
 
       chat.appendChild(div);
       chat.scrollTop = chat.scrollHeight;
+
+      // 🔔 Play sound if not your own message
+      if (msg.name !== userName) {
+        notifySound.play().catch(() => {});
+      }
     });
 
-    // ✍️ Typing indicator
     messageInput.addEventListener("input", () => {
       db.ref("typing/" + userName).set(messageInput.value.trim() !== "");
     });
@@ -270,7 +282,6 @@ body::before {
       typingStatus.innerText = typingUsers.length ? typingUsers.join(", ") + " typing..." : "";
     });
 
-    // ⏎ Enter key to send
     messageInput.addEventListener("keydown", e => {
       if (e.key === "Enter" && !e.shiftKey) {
         e.preventDefault();
@@ -278,7 +289,6 @@ body::before {
       }
     });
 
-    // 🗑 Reset Chat
     function resetChat() {
       if (confirm("Are you sure you want to delete all messages?")) {
         db.ref("messages").remove();
@@ -286,7 +296,6 @@ body::before {
       }
     }
 
-    // Start authentication
     authenticate();
   </script>
 </body>
