@@ -64,18 +64,18 @@
     }
 
   /* Add this NEW section or update your existing #form style */
-  #form {
+ #form {
   position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
   display: flex;
-  padding: 10px;
-  background: rgba(255, 255, 255, 0.9);
-  gap: 8px;
-  border-top: 1px solid #ddd;
+  gap: 5px;
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.95);
   z-index: 10;
-  box-shadow: 0 -2px 5px rgba(0,0,0,0.2);
+  box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(8px);
 }
 
 /* Add this to make chat take remaining space without overlapping the form */
@@ -88,31 +88,34 @@
   margin-bottom: 80px; /* Same height or more than the form's height */
 }
 
-
-    #message {
-      flex: 1;
-      padding: 12px 15px;
-      font-size: 16px;
-      border: 1px solid #ccc;
-      border-radius: 25px;
-      outline: none;
-    }
-
+#message {
+  flex: 1;
+  padding: 12px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 25px;
+  outline: none;
+  min-height: 44px;
+  box-sizing: border-box;
+}
+    
     #message:focus {
       border-color: #5cb85c;
       box-shadow: 0 0 5px rgba(92, 184, 92, 0.5);
     }
 
-    #send {
-      padding: 0 20px;
-      background: #5cb85c;
-      color: white;
-      border: none;
-      border-radius: 25px;
-      font-size: 16px;
-      cursor: pointer;
-    }
-
+#send {
+  padding: 0 18px;
+  font-size: 16px;
+  border: none;
+  background: #00897b;
+  color: white;
+  border-radius: 25px;
+  cursor: pointer;
+  min-height: 44px;
+  white-space: nowrap;
+}
+    
     #send:hover {
       background: #4cae4c;
     }
