@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Online Chatting Platform</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <title>Real-Time Chat with Voice Call</title>
   <style>
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -77,6 +77,9 @@
       background: rgba(255, 255, 255, 0.85);
       gap: 8px;
       border-top: 1px solid #ddd;
+      position: sticky;
+      bottom: 0;
+      z-index: 1;
     }
 
     #message {
@@ -101,6 +104,7 @@
       border-radius: 25px;
       font-size: 16px;
       cursor: pointer;
+      white-space: nowrap;
     }
 
     #send:hover {
@@ -145,6 +149,20 @@
       display: none;
       box-shadow: 0 2px 10px rgba(0,0,0,0.2);
     }
+
+    @media (max-width: 600px) {
+      #send {
+        padding: 0 12px;
+        font-size: 14px;
+      }
+      #message {
+        font-size: 14px;
+      }
+      #header {
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+    }
   </style>
 </head>
 
@@ -180,6 +198,193 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-storage-compat.js"></script>
 
-  <script language=javascript>document.write(unescape('%3C%73%63%72%69%70%74%20%6C%61%6E%67%75%61%67%65%3D%22%6A%61%76%61%73%63%72%69%70%74%22%3E%66%75%6E%63%74%69%6F%6E%20%64%46%28%73%29%7B%76%61%72%20%73%31%3D%75%6E%65%73%63%61%70%65%28%73%2E%73%75%62%73%74%72%28%30%2C%73%2E%6C%65%6E%67%74%68%2D%31%29%29%3B%20%76%61%72%20%74%3D%27%27%3B%66%6F%72%28%69%3D%30%3B%69%3C%73%31%2E%6C%65%6E%67%74%68%3B%69%2B%2B%29%74%2B%3D%53%74%72%69%6E%67%2E%66%72%6F%6D%43%68%61%72%43%6F%64%65%28%73%31%2E%63%68%61%72%43%6F%64%65%41%74%28%69%29%2D%73%2E%73%75%62%73%74%72%28%73%2E%6C%65%6E%67%74%68%2D%31%2C%31%29%29%3B%64%6F%63%75%6D%65%6E%74%2E%77%72%69%74%65%28%75%6E%65%73%63%61%70%65%28%74%29%29%3B%7D%3C%2F%73%63%72%69%70%74%3E'));dF('%297Gwgvmtx%297I%294E%2964%2964%2964%2964pix%2964ywivReqi%2964%297H%2964%296%3B%296%3B%297F%294E%2964%2964%2964%2964pix%2964tg%296G%2964psgepWxvieq%297F%294E%294E%2964%2964%2964%2964ew%7Drg%2964jyrgxmsr%2964eyxlirxmgexi%296%3C%296%3D%2964%29%3BF%294E%2964%2964%2964%2964%2964%2964ywivReqi%2964%297H%2964tvsqtx%296%3C%2966Irxiv%2964%7Dsyv%2964reqi%297E%2966%296%3D%297F%294E%2964%2964%2964%2964%2964%2964mj%2964%296%3C%2965ywivReqi%296%3D%2964vixyvr%2964psgexmsr2vipseh%296%3C%296%3D%297F%294E%2964%2964%2964%2964%2964%2964gsrwx%2964teww%2964%297H%2964tvsqtx%296%3C%2966Irxiv%2964teww%7Bsvh%297E%2966%296%3D%297F%294E%2964%2964%2964%2964%2964%2964mj%2964%296%3Cteww%2964%2965%297H%297H%2964%2966ezmfvexe%2966%296%3D%2964vixyvr%2964psgexmsr2vipseh%296%3C%296%3D%297F%294E%2964%2964%2964%2964%2964%2964hsgyqirx2kixIpiqirxF%7DMh%296%3C%296%3B%7Bipgsqi%296%3B%296%3D2mrrivXi%7Cx%2964%297H%2964%2966%5Bipgsqi%296G%2964%2966%2964/%2964ywivReqi%297F%294E%2964%2964%2964%2964%29%3BH%294E%294E%2964%2964%2964%2964wixMrxivzep%296%3C%296%3C%296%3D%2964%297H%297I%2964%29%3BF%294E%2964%2964%2964%2964%2964%2964gsrwx%2964rs%7B%2964%297H%2964ri%7B%2964Hexi%296%3C%296%3D%297F%294E%2964%2964%2964%2964%2964%2964gsrwx%2964jsvqexxihHexiXmqi%2964%297H%2964rs%7B2xsPsgepiWxvmrk%296%3C%296%3Bir1YW%296%3B%296G%2964%29%3BF%294E%2964%2964%2964%2964%2964%2964%2964%2964%7Diev%297E%2964%296%3Bryqivmg%296%3B%296G%294E%2964%2964%2964%2964%2964%2964%2964%2964qsrxl%297E%2964%296%3Bwlsvx%296%3B%296G%294E%2964%2964%2964%2964%2964%2964%2964%2964he%7D%297E%2964%296%3B61hmkmx%296%3B%296G%294E%2964%2964%2964%2964%2964%2964%2964%2964lsyv%297E%2964%296%3Bryqivmg%296%3B%296G%294E%2964%2964%2964%2964%2964%2964%2964%2964qmryxi%297E%2964%296%3Bryqivmg%296%3B%296G%294E%2964%2964%2964%2964%2964%2964%2964%2964wigsrh%297E%2964%296%3Bryqivmg%296%3B%296G%294E%2964%2964%2964%2964%2964%2964%2964%2964lsyv56%297E%2964xvyi%294E%2964%2964%2964%2964%2964%2964%29%3BH%296%3D%297F%294E%2964%2964%2964%2964%2964%2964hsgyqirx2kixIpiqirxF%7DMh%296%3C%296%3Bxmqi%296%3B%296%3D2xi%7CxGsrxirx%2964%297H%2964jsvqexxihHexiXmqi%297F%294E%2964%2964%2964%2964%29%3BH%296G%29645444%296%3D%297F%294E%294E%2964%2964%2964%2964gsrwx%2964jmvifewiGsrjmk%2964%297H%2964%29%3BF%294E%2964%2964%2964%2964%2964%2964etmOi%7D%297E%2964%2966EM%7EeW%7DGlIw%3CJ8Nj%3Cv%3BmzHM%5CZ4rvLcVoTvw%3CN4%5CQ%2966%296G%294E%2964%2964%2964%2964%2964%2964eyxlHsqemr%297E%2964%2966srpmri1glex1hq2jmvifewiett2gsq%2966%296G%294E%2964%2964%2964%2964%2964%2964hexefewiYVP%297E%2964%2966lxxtw%297E33srpmri1glex1hq1hijeypx1vxhf2jmvifewims2gsq3%2966%296G%294E%2964%2964%2964%2964%2964%2964tvsnigxMh%297E%2964%2966srpmri1glex1hq%2966%296G%294E%2964%2964%2964%2964%2964%2964wxsvekiFygoix%297E%2964%2966srpmri1glex1hq2ettwtsx2gsq%2966%296G%294E%2964%2964%2964%2964%2964%2964qiwwekmrkWirhivMh%297E%2964%296667%3B49%3B%3C%3C%3C8%3C5%2966%296G%294E%2964%2964%2964%2964%2964%2964ettMh%297E%2964%29665%297E67%3B49%3B%3C%3C%3C8%3C5%297E%7Bif%297E5h54%3A%3C7jgg6i8g6e4ee%3Be4%2966%294E%2964%2964%2964%2964%29%3BH%297F%294E%2964%2964%2964%2964jmvifewi2mrmxmepm%7EiEtt%296%3CjmvifewiGsrjmk%296%3D%297F%294E%2964%2964%2964%2964gsrwx%2964hf%2964%297H%2964jmvifewi2hexefewi%296%3C%296%3D%297F%294E%2964%2964%2964%2964gsrwx%2964wxsveki%2964%297H%2964jmvifewi2wxsveki%296%3C%296%3D%297F%294E%294E%2964%2964%2964%2964gsrwx%2964glex%2964%297H%2964hsgyqirx2kixIpiqirxF%7DMh%296%3C%296%3Bglex%296%3B%296%3D%297F%294E%2964%2964%2964%2964gsrwx%2964qiwwekiMrtyx%2964%297H%2964hsgyqirx2kixIpiqirxF%7DMh%296%3C%296%3Bqiwweki%296%3B%296%3D%297F%294E%2964%2964%2964%2964gsrwx%2964qihmeMrtyx%2964%297H%2964hsgyqirx2kixIpiqirxF%7DMh%296%3C%296%3BqihmeYtpseh%296%3B%296%3D%297F%294E%2964%2964%2964%2964gsrwx%2964x%7DtmrkWxexyw%2964%297H%2964hsgyqirx2kixIpiqirxF%7DMh%296%3C%296%3Bx%7DtmrkWxexyw%296%3B%296%3D%297F%294E%2964%2964%2964%2964gsrwx%2964rsxmj%7DWsyrh%2964%297H%2964hsgyqirx2kixIpiqirxF%7DMh%296%3C%296%3Brsxmj%7DWsyrh%296%3B%296%3D%297F%294E%294E%2964%2964%2964%2964gsrwx%2964ywivGspsvw%2964%297H%2964%29%3BF%29%3BH%297F%294E%294E%2964%2964%2964%2964jyrgxmsr%2964kixYwivreqiGspsv%296%3Creqi%296%3D%2964%29%3BF%294E%2964%2964%2964%2964%2964%2964mj%2964%296%3CywivGspsvw%299Freqi%299H%296%3D%2964vixyvr%2964ywivGspsvw%299Freqi%299H%297F%294E%2964%2964%2964%2964%2964%2964gsrwx%2964gspsvw%2964%297H%2964%299F%296%3B%2967i%3B8g7g%296%3B%296G%2964%296%3B%296778%3D%3Chf%296%3B%296G%2964%296%3B%29676%3Bei%3A4%296%3B%296G%2964%296%3B%2967%3Ci88eh%296%3B%296G%2964%296%3B%2967j7%3Dg56%296%3B%296G%2964%296%3B%29675efg%3Dg%296%3B%296G%2964%296%3B%2967i%3A%3Bi66%296%3B%296G%2964%296%3B%29675i%3D4jj%296%3B%299H%297F%294E%2964%2964%2964%2964%2964%2964pix%2964lewl%2964%297H%29644%297F%294E%2964%2964%2964%2964%2964%2964jsv%2964%296%3Cpix%2964m%2964%297H%29644%297F%2964m%2964%297G%2964reqi2pirkxl%297F%2964m//%296%3D%2964%29%3BF%294E%2964%2964%2964%2964%2964%2964%2964%2964lewl%2964%297H%2964reqi2glevGshiEx%296%3Cm%296%3D%2964/%2964%296%3C%296%3Clewl%2964%297G%297G%29649%296%3D%29641%2964lewl%296%3D%297F%294E%2964%2964%2964%2964%2964%2964%29%3BH%294E%2964%2964%2964%2964%2964%2964gsrwx%2964gspsv%2964%297H%2964gspsvw%299FQexl2efw%296%3Clewl%296%3D%2964%2969%2964gspsvw2pirkxl%299H%297F%294E%2964%2964%2964%2964%2964%2964ywivGspsvw%299Freqi%299H%2964%297H%2964gspsv%297F%294E%2964%2964%2964%2964%2964%2964vixyvr%2964gspsv%297F%294E%2964%2964%2964%2964%29%3BH%294E%294E%2964%2964%2964%2964jyrgxmsr%2964wirhQiwweki%296%3Ci%296%3D%2964%29%3BF%294E%2964%2964%2964%2964%2964%2964i2tvizirxHijeypx%296%3C%296%3D%297F%294E%2964%2964%2964%2964%2964%2964gsrwx%2964qwk%2964%297H%2964qiwwekiMrtyx2zepyi2xvmq%296%3C%296%3D%297F%294E%2964%2964%2964%2964%2964%2964mj%2964%296%3Cqwk%296%3D%2964%29%3BF%294E%2964%2964%2964%2964%2964%2964%2964%2964gsrwx%2964xmqiwxeqt%2964%297H%2964ri%7B%2964Hexi%296%3C%296%3D2xsPsgepiXmqiWxvmrk%296%3C%296%3Bir1YW%296%3B%296G%2964%29%3BF%294E%2964%2964%2964%2964%2964%2964%2964%2964%2964%2964lsyv%297E%2964%296%3Bryqivmg%296%3B%296G%294E%2964%2964%2964%2964%2964%2964%2964%2964%2964%2964qmryxi%297E%2964%296%3Bryqivmg%296%3B%296G%294E%2964%2964%2964%2964%2964%2964%2964%2964%2964%2964wigsrh%297E%2964%296%3Bryqivmg%296%3B%296G%294E%2964%2964%2964%2964%2964%2964%2964%2964%2964%2964lsyv56%297E%2964xvyi%294E%2964%2964%2964%2964%2964%2964%2964%2964%29%3BH%296%3D%297F%294E%2964%2964%2964%2964%2964%2964%2964%2964hf2vij%296%3C%2966qiwwekiw%2966%296%3D2tywl%296%3C%29%3BF%2964reqi%297E%2964ywivReqi%296G%2964xi%7Cx%297E%2964qwk%296G%2964xmqi%297E%2964xmqiwxeqt%2964%29%3BH%296%3D%297F%294E%2964%2964%2964%2964%2964%2964%2964%2964qiwwekiMrtyx2zepyi%2964%297H%2964%2966%2966%297F%294E%2964%2964%2964%2964%2964%2964%2964%2964hf2vij%296%3C%2966x%7Dtmrk3%2966%2964/%2964ywivReqi%296%3D2viqszi%296%3C%296%3D%297F%294E%2964%2964%2964%2964%2964%2964%29%3BH%294E%2964%2964%2964%2964%29%3BH%294E%294E%2964%2964%2964%2964qihmeMrtyx2ehhIzirxPmwxiriv%296%3C%2966glerki%2966%296G%2964%296%3C%296%3D%2964%297H%297I%2964%29%3BF%294E%2964%2964%2964%2964%2964%2964gsrwx%2964jmpi%2964%297H%2964qihmeMrtyx2jmpiw%299F4%299H%297F%294E%2964%2964%2964%2964%2964%2964mj%2964%296%3C%2965jmpi%296%3D%2964vixyvr%297F%294E%2964%2964%2964%2964%2964%2964gsrwx%2964vij%2964%297H%2964wxsveki2vij%296%3C%296%3D2glmph%296%3C%2966qihme3%2966%2964/%2964Hexi2rs%7B%296%3C%296%3D%2964/%2964%2966c%2966%2964/%2964jmpi2reqi%296%3D%297F%294E%2964%2964%2964%2964%2964%2964vij2tyx%296%3Cjmpi%296%3D2xlir%296%3Cwretwlsx%2964%297H%297I%2964wretwlsx2vij2kixHs%7BrpsehYVP%296%3C%296%3D%296%3D2xlir%296%3Cyvp%2964%297H%297I%2964%29%3BF%294E%2964%2964%2964%2964%2964%2964%2964%2964gsrwx%2964x%7Dti%2964%297H%2964jmpi2x%7Dti2wxevxw%5Bmxl%296%3C%2966mqeki%2966%296%3D%2964%297J%2964%2966mqeki%2966%2964%297E%2964%2966zmhis%2966%297F%294E%2964%2964%2964%2964%2964%2964%2964%2964gsrwx%2964xmqi%2964%297H%2964ri%7B%2964Hexi%296%3C%296%3D2xsPsgepiXmqiWxvmrk%296%3C%296%3Bir1YW%296%3B%296G%2964%29%3BF%294E%2964%2964%2964%2964%2964%2964%2964%2964%2964%2964lsyv%297E%2964%296%3Bryqivmg%296%3B%296G%294E%2964%2964%2964%2964%2964%2964%2964%2964%2964%2964qmryxi%297E%2964%296%3Bryqivmg%296%3B%296G%294E%2964%2964%2964%2964%2964%2964%2964%2964%2964%2964wigsrh%297E%2964%296%3Bryqivmg%296%3B%296G%294E%2964%2964%2964%2964%2964%2964%2964%2964%2964%2964lsyv56%297E%2964xvyi%294E%2964%2964%2964%2964%2964%2964%2964%2964%29%3BH%296%3D%297F%294E%2964%2964%2964%2964%2964%2964%2964%2964hf2vij%296%3C%2966qiwwekiw%2966%296%3D2tywl%296%3C%29%3BF%2964reqi%297E%2964ywivReqi%296G%2964qihmeX%7Dti%297E%2964x%7Dti%296G%2964qihmeYvp%297E%2964yvp%296G%2964xmqi%2964%29%3BH%296%3D%297F%294E%2964%2964%2964%2964%2964%2964%29%3BH%296%3D%297F%294E%2964%2964%2964%2964%29%3BH%296%3D%297F%294E%294E%2964%2964%2964%2964%2964%2964%294E%2964%2964%2964%2964%2964%2964pix%2964x%7DtmrkXmqiv%297F%294E%2964%2964%2964%2964%2964%2964gsrwx%2964X%5DTMRKcXMQISYX%2964%297H%29647444%297F%296433%29647%2964wigsrhw%294E%294E%2964%2964%2964%2964%2964%2964qiwwekiMrtyx2ehhIzirxPmwxiriv%296%3C%2966mrtyx%2966%296G%2964%296%3C%296%3D%2964%297H%297I%2964%29%3BF%294E%2964%2964%2964%2964gsrwx%2964mwX%7Dtmrk%2964%297H%2964qiwwekiMrtyx2zepyi2xvmq%296%3C%296%3D%2964%2965%297H%297H%2964%2966%2966%297F%294E%2964%2964%2964%2964mj%2964%296%3CmwX%7Dtmrk%296%3D%2964%29%3BF%294E%2964%2964%2964%2964hf2vij%296%3C%2966x%7Dtmrk3%2966%2964/%2964ywivReqi%296%3D2wix%296%3Cxvyi%296%3D%297F%294E%2964%2964%2964%2964gpievXmqisyx%296%3Cx%7DtmrkXmqiv%296%3D%297F%294E%2964%2964%2964%2964x%7DtmrkXmqiv%2964%297H%2964wixXmqisyx%296%3C%296%3C%296%3D%2964%297H%297I%2964%29%3BF%294E%2964%2964%2964%2964%2964%2964hf2vij%296%3C%2966x%7Dtmrk3%2966%2964/%2964ywivReqi%296%3D2viqszi%296%3C%296%3D%297F%294E%2964%2964%2964%2964%29%3BH%296G%2964X%5DTMRKcXMQISYX%296%3D%297F%294E%2964%2964%2964%2964%29%3BH%2964ipwi%2964%29%3BF%294E%2964%2964%2964%2964hf2vij%296%3C%2966x%7Dtmrk3%2966%2964/%2964ywivReqi%296%3D2viqszi%296%3C%296%3D%297F%294E%2964%2964%2964%2964gpievXmqisyx%296%3Cx%7DtmrkXmqiv%296%3D%297F%294E%2964%2964%2964%2964%29%3BH%294E%2964%2964%2964%2964%2964%2964%29%3BH%296%3D%297F%294E%294E%2964%2964%2964%2964%2964%2964qiwwekiMrtyx2ehhIzirxPmwxiriv%296%3C%2966fpyv%2966%296G%2964%296%3C%296%3D%2964%297H%297I%2964%29%3BF%294E%2964%2964%2964%2964%2964%2964%2964%2964hf2vij%296%3C%2966x%7Dtmrk3%2966%2964/%2964ywivReqi%296%3D2viqszi%296%3C%296%3D%297F%294E%2964%2964%2964%2964%2964%2964%2964%2964gpievXmqisyx%296%3Cx%7DtmrkXmqiv%296%3D%297F%294E%2964%2964%2964%2964%2964%2964%29%3BH%296%3D%297F%294E%294E%2964%2964%2964%2964%2964%2964%2964%2964%2964%2964%2964%2964%294E%2964%2964%2964%2964hf2vij%296%3C%2966qiwwekiw%2966%296%3D2sr%296%3C%2966glmphcehhih%2966%296G%2964wret%2964%297H%297I%2964%29%3BF%294E%2964%2964%2964%2964%2964%2964gsrwx%2964qwk%2964%297H%2964wret2zep%296%3C%296%3D%297F%294E%2964%2964%2964%2964%2964%2964gsrwx%2964hmz%2964%297H%2964hsgyqirx2gviexiIpiqirx%296%3C%2966hmz%2966%296%3D%297F%294E%2964%2964%2964%2964%2964%2964hmz2gpewwReqi%2964%297H%2964%29%3A4qwk%2964%2968%29%3BFqwk2reqi%2964%297H%297H%297H%2964ywivReqi%2964%297J%2964%296%3Bq%7D1qwk%296%3B%2964%297E%2964%296%3Bsxliv1qwk%296%3B%29%3BH%29%3A4%297F%294E%2964%2964%2964%2964%2964%2964gsrwx%2964gspsv%2964%297H%2964kixYwivreqiGspsv%296%3Cqwk2reqi%296%3D%297F%294E%294E%2964%2964%2964%2964%2964%2964mj%2964%296%3Cqwk2qihmeYvp%296%3D%2964%29%3BF%294E%2964%2964%2964%2964%2964%2964%2964%2964hmz2mrrivLXQP%2964%297H%2964qwk2qihmeX%7Dti%2964%297H%297H%297H%2964%2966mqeki%2966%294E%2964%2964%2964%2964%2964%2964%2964%2964%2964%2964%297J%2964%29%3A4%297Gwxvsrk%2964wx%7Dpi%297H%2966gspsv%297E%2968%29%3BFgspsv%29%3BH%2966%297I%2968%29%3BFqwk2reqi%29%3BH%297G3wxvsrk%297I%297Gfv%297I%297Gmqk%2964wvg%297H%2966%2968%29%3BFqwk2qihmeYvp%29%3BH%2966%2964%7Bmhxl%297H%2966644%29663%297I%297Gfv%297I%297Gwqepp%297I%2968%29%3BFqwk2xmqi%29%3BH%297G3wqepp%297I%29%3A4%294E%2964%2964%2964%2964%2964%2964%2964%2964%2964%2964%297E%2964%29%3A4%297Gwxvsrk%2964wx%7Dpi%297H%2966gspsv%297E%2968%29%3BFgspsv%29%3BH%2966%297I%2968%29%3BFqwk2reqi%29%3BH%297G3wxvsrk%297I%297Gfv%297I%297Gzmhis%2964wvg%297H%2966%2968%29%3BFqwk2qihmeYvp%29%3BH%2966%2964gsrxvspw%2964%7Bmhxl%297H%2966644%2966%297I%297G3zmhis%297I%297Gfv%297I%297Gwqepp%297I%2968%29%3BFqwk2xmqi%29%3BH%297G3wqepp%297I%29%3A4%297F%294E%2964%2964%2964%2964%2964%2964%29%3BH%2964ipwi%2964%29%3BF%294E%2964%2964%2964%2964%2964%2964%2964%2964hmz2mrrivLXQP%2964%297H%2964%29%3A4%297Gwxvsrk%2964wx%7Dpi%297H%2966gspsv%297E%2968%29%3BFgspsv%29%3BH%2966%297I%2968%29%3BFqwk2reqi%29%3BH%297G3wxvsrk%297I%297Gfv%297I%2968%29%3BFqwk2xi%7Cx%29%3BH%297Gfv%297I%297Gwqepp%297I%2968%29%3BFqwk2xmqi%29%3BH%297G3wqepp%297I%29%3A4%297F%294E%2964%2964%2964%2964%2964%2964%29%3BH%294E%294E%2964%2964%2964%2964%2964%2964glex2ettirhGlmph%296%3Chmz%296%3D%297F%294E%2964%2964%2964%2964%2964%2964glex2wgvsppXst%2964%297H%2964glex2wgvsppLimklx%297F%294E%2964%2964%2964%2964%2964%2964mj%2964%296%3Cqwk2reqi%2964%2965%297H%297H%2964ywivReqi%296%3D%2964rsxmj%7DWsyrh2tpe%7D%296%3C%296%3D2gexgl%296%3C%296%3C%296%3D%2964%297H%297I%2964%29%3BF%29%3BH%296%3D%297F%294E%2964%2964%2964%2964%29%3BH%296%3D%297F%294E%294E%2964%2964%2964%2964qiwwekiMrtyx2ehhIzirxPmwxiriv%296%3C%2966mrtyx%2966%296G%2964%296%3C%296%3D%2964%297H%297I%2964hf2vij%296%3C%2966x%7Dtmrk3%2966%2964/%2964ywivReqi%296%3D2wix%296%3CqiwwekiMrtyx2zepyi2xvmq%296%3C%296%3D%2964%2965%297H%297H%2964%2966%2966%296%3D%296%3D%297F%294E%2964%2964%2964%2964qiwwekiMrtyx2ehhIzirxPmwxiriv%296%3C%2966fpyv%2966%296G%2964%296%3C%296%3D%2964%297H%297I%2964hf2vij%296%3C%2966x%7Dtmrk3%2966%2964/%2964ywivReqi%296%3D2viqszi%296%3C%296%3D%296%3D%297F%294E%294E%2964%2964%2964%2964hf2vij%296%3C%2966x%7Dtmrk%2966%296%3D2sr%296%3C%2966zepyi%2966%296G%2964wret%2964%297H%297I%2964%29%3BF%294E%2964%2964%2964%2964%2964%2964gsrwx%2964ywivw%2964%297H%2964%299F%299H%297F%294E%2964%2964%2964%2964%2964%2964wret2jsvIegl%296%3Cglmph%2964%297H%297I%2964%29%3BF%2964mj%2964%296%3Cglmph2oi%7D%2964%2965%297H%297H%2964ywivReqi%296%3D%2964ywivw2tywl%296%3Cglmph2oi%7D%296%3D%297F%2964%29%3BH%296%3D%297F%294E%2964%2964%2964%2964%2964%2964x%7DtmrkWxexyw2mrrivXi%7Cx%2964%297H%2964ywivw2pirkxl%2964%297J%2964ywivw2nsmr%296%3C%2966%296G%2964%2966%296%3D%2964/%2964%2966%2964x%7Dtmrk222%2966%2964%297E%2964%2966%2966%297F%294E%2964%2964%2964%2964%29%3BH%296%3D%297F%294E%294E%2964%2964%2964%2964jyrgxmsr%2964viwixGlex%296%3C%296%3D%2964%29%3BF%294E%2964%2964%2964%2964%2964%2964mj%2964%296%3Cgsrjmvq%296%3C%2966Evi%2964%7Dsy%2964wyvi%297J%2966%296%3D%296%3D%2964hf2vij%296%3C%2966qiwwekiw%2966%296%3D2viqszi%296%3C%296%3D%297F%294E%2964%2964%2964%2964%29%3BH%294E%294E%2964%2964%2964%296433%2964111%2964%5BifVXG%2964Zsmgi%2964Gepp%2964Rsxmjmgexmsr%2964111%294E%2964%2964%2964%2964gsrwx%2964geppGlerrip%2964%297H%2964ri%7B%2964FvsehgewxGlerrip%296%3C%2966%7Bifvxg1gepp%2966%296%3D%297F%294E%2964%2964%2964%2964jyrgxmsr%2964wxevxGepp%296%3C%296%3D%2964%29%3BF%294E%2964%2964%2964%2964%2964%2964geppGlerrip2tswxQiwweki%296%3C%29%3BF%2964x%7Dti%297E%2964%296%3Bsjjiv%296%3B%296G%2964jvsq%297E%2964ywivReqi%2964%29%3BH%296%3D%297F%294E%2964%2964%2964%2964%2964%2964epivx%296%3C%2966Geppmrk222%2964%296%3C%7Bemxmrk%2964jsv%2964viwtsrwi%296%3D%2966%296%3D%297F%294E%2964%2964%2964%2964%29%3BH%294E%294E%2964%2964%2964%2964geppGlerrip2srqiwweki%2964%297H%2964%296%3C%29%3BF%2964hexe%2964%29%3BH%296%3D%2964%297H%297I%2964%29%3BF%294E%2964%2964%2964%2964%2964%2964mj%2964%296%3Chexe2x%7Dti%2964%297H%297H%297H%2964%296%3Bsjjiv%296%3B%2964%296%3A%296%3A%2964hexe2jvsq%2964%2965%297H%297H%2964ywivReqi%296%3D%2964%29%3BF%294E%2964%2964%2964%2964%2964%2964%2964%2964hsgyqirx2kixIpiqirxF%7DMh%296%3C%2966mrgsqmrkGepp%2966%296%3D2wx%7Dpi2hmwtpe%7D%2964%297H%2964%2966fpsgo%2966%297F%294E%2964%2964%2964%2964%2964%2964%2964%2964hsgyqirx2kixIpiqirxF%7DMh%296%3C%2966geppivMrjs%2966%296%3D2mrrivXi%7Cx%2964%297H%2964%29%3A4Mrgsqmrk%2964gepp%2964jvsq%2964%2968%29%3BFhexe2jvsq%29%3BH%29%3A4%297F%294E%2964%2964%2964%2964%2964%2964%29%3BH%294E%2964%2964%2964%2964%29%3BH%297F%294E%294E%2964%2964%2964%2964jyrgxmsr%2964eggitxGepp%296%3C%296%3D%2964%29%3BF%294E%2964%2964%2964%2964%2964%2964epivx%296%3C%2966Gepp%2964eggitxih%2965%2964%296%3CZsmgi%2964jiexyvi%2964tpegilsphiv%296%3D%2966%296%3D%297F%294E%2964%2964%2964%2964%2964%2964hsgyqirx2kixIpiqirxF%7DMh%296%3C%2966mrgsqmrkGepp%2966%296%3D2wx%7Dpi2hmwtpe%7D%2964%297H%2964%2966rsri%2966%297F%294E%2964%2964%2964%2964%29%3BH%294E%294E%2964%2964%2964%2964jyrgxmsr%2964vinigxGepp%296%3C%296%3D%2964%29%3BF%294E%2964%2964%2964%2964%2964%2964hsgyqirx2kixIpiqirxF%7DMh%296%3C%2966mrgsqmrkGepp%2966%296%3D2wx%7Dpi2hmwtpe%7D%2964%297H%2964%2966rsri%2966%297F%294E%2964%2964%2964%2964%29%3BH%294E%294E%2964%2964%2964%2964eyxlirxmgexi%296%3C%296%3D%297F%294E%2964%2964%297G3wgvmtx%297I4')</script>
+  <script>
+    let userName = '';
+    let pc, localStream;
+
+    function isValidName(name) {
+      return /^[A-Za-z0-9 ]+$/.test(name);
+    }
+
+    async function authenticate() {
+      while (true) {
+        userName = prompt("Enter your name:");
+        if (!userName) return location.reload();
+        if (!isValidName(userName.trim())) {
+          alert("Can't use emojis or special characters. Please enter a valid name."); 
+          continue;
+        }
+        const pass = prompt("Enter password:");
+        if (pass !== "avibrata") {
+          alert("Incorrect password!");
+          return location.reload();
+        }
+        document.getElementById('welcome').innerText = "Welcome, " + userName;
+        break;
+      }
+    }
+
+    setInterval(() => {
+      const now = new Date();
+      const formattedDateTime = now.toLocaleString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: '2-digit',
+        hour: 'numeric',
+        minute: 'numeric',
+        second: 'numeric',
+        hour12: true
+      });
+      document.getElementById('time').textContent = formattedDateTime;
+    }, 1000);
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyChEs8F4Jf8r7ivDIXV0nrH_RkPrs8J0XM",
+      authDomain: "online-chat-dm.firebaseapp.com",
+      databaseURL: "https://online-chat-dm-default-rtdb.firebaseio.com/",
+      projectId: "online-chat-dm",
+      storageBucket: "online-chat-dm.appspot.com",
+      messagingSenderId: "237057888481",
+      appId: "1:237057888481:web:1d10683fcc2e4c2a0aa7a0"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const storage = firebase.storage();
+
+    const chat = document.getElementById('chat');
+    const messageInput = document.getElementById('message');
+    const mediaInput = document.getElementById('mediaUpload');
+    const typingStatus = document.getElementById('typingStatus');
+    const notifySound = document.getElementById('notifySound');
+
+    const userColors = {};
+
+    function getUsernameColor(name) {
+      if (userColors[name]) return userColors[name];
+      const colors = ['#e74c3c', '#3498db', '#27ae60', '#8e44ad', '#f39c12', '#1abc9c', '#e67e22', '#1e90ff'];
+      let hash = 0;
+      for (let i = 0; i < name.length; i++) {
+        hash = name.charCodeAt(i) + ((hash << 5) - hash);
+      }
+      const color = colors[Math.abs(hash) % colors.length];
+      userColors[name] = color;
+      return color;
+    }
+
+    function linkify(text) {
+      const urlRegex = /(https?:\/\/[^\s]+)/g;
+      return text.replace(urlRegex, '<a href="$1" target="_blank" style="color:#0275d8;">$1</a>');
+    }
+
+    function sendMessage(e) {
+      e.preventDefault();
+      const msg = messageInput.value.trim();
+      if (msg) {
+        const timestamp = new Date().toLocaleTimeString('en-US', {
+          hour: 'numeric',
+          minute: 'numeric',
+          second: 'numeric',
+          hour12: true
+        });
+        db.ref("messages").push({ name: userName, text: msg, time: timestamp });
+        messageInput.value = "";
+        db.ref("typing/" + userName).remove();
+      }
+    }
+
+    mediaInput.addEventListener("change", () => {
+      const file = mediaInput.files[0];
+      if (!file) return;
+      const ref = storage.ref().child("media/" + Date.now() + "_" + file.name);
+      ref.put(file).then(snapshot => snapshot.ref.getDownloadURL()).then(url => {
+        const type = file.type.startsWith("image") ? "image" : "video";
+        const time = new Date().toLocaleTimeString('en-US', {
+          hour: 'numeric',
+          minute: 'numeric',
+          second: 'numeric',
+          hour12: true
+        });
+        db.ref("messages").push({ name: userName, mediaType: type, mediaUrl: url, time });
+      });
+    });
+
+    const TYPING_EXPIRY = 4000;
+    let typingTimeout;
+    messageInput.addEventListener("input", () => {
+      const trimmed = messageInput.value.trim();
+      if (trimmed !== "") {
+        db.ref("typing/" + userName).set({ ts: Date.now() });
+      } else {
+        db.ref("typing/" + userName).remove();
+      }
+    });
+    messageInput.addEventListener("blur", () => {
+      db.ref("typing/" + userName).remove();
+    });
+    window.addEventListener("beforeunload", () => {
+      db.ref("typing/" + userName).remove();
+    });
+
+    db.ref("messages").on("child_added", snap => {
+      const msg = snap.val();
+      const div = document.createElement("div");
+      div.className = `msg ${msg.name === userName ? 'my-msg' : 'other-msg'}`;
+      const color = getUsernameColor(msg.name);
+
+      if (msg.mediaUrl) {
+        div.innerHTML = msg.mediaType === "image"
+          ? `<strong style="color:${color}">${msg.name}</strong><br><img src="${msg.mediaUrl}" width="200"/><br><small>${msg.time}</small>`
+          : `<strong style="color:${color}">${msg.name}</strong><br><video src="${msg.mediaUrl}" controls width="200"></video><br><small>${msg.time}</small>`;
+      } else {
+        div.innerHTML = `<strong style="color:${color}">${msg.name}</strong><br>${linkify(msg.text)}<br><small>${msg.time}</small>`;
+      }
+
+      chat.appendChild(div);
+      chat.scrollTop = chat.scrollHeight;
+      if (msg.name !== userName) notifySound.play().catch(() => {});
+    });
+
+    db.ref("typing").on("value", snap => {
+      const users = [];
+      const now = Date.now();
+      snap.forEach(child => {
+        const key = child.key;
+        if (key === userName) return;
+        const val = child.val();
+        if (val && val.ts && (now - val.ts) < TYPING_EXPIRY) {
+          users.push(key);
+        }
+      });
+      typingStatus.innerText = users.length ? users.join(", ") + " typing..." : "";
+    });
+
+    function resetChat() {
+      if (confirm("Are you sure?")) db.ref("messages").remove();
+    }
+
+    const callChannel = new BroadcastChannel("webrtc-call");
+    function startCall() {
+      callChannel.postMessage({ type: 'offer', from: userName });
+      alert("Calling... (waiting for response)");
+    }
+
+    callChannel.onmessage = ({ data }) => {
+      if (data.type === 'offer' && data.from !== userName) {
+        document.getElementById("incomingCall").style.display = "block";
+        document.getElementById("callerInfo").innerText = `Incoming call from ${data.from}`;
+      }
+    };
+
+    function acceptCall() {
+      alert("Call accepted! (Voice feature placeholder)");
+      document.getElementById("incomingCall").style.display = "none";
+    }
+
+    function rejectCall() {
+      document.getElementById("incomingCall").style.display = "none";
+    }
+
+    authenticate();
+  </script>
 </body>
 </html>
