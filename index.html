@@ -36,6 +36,28 @@
       align-items: center;
       font-size: 19px;
       box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    #pinned {
+      padding: 6px 12px;
+      background: rgba(255,255,255,0.08);
+      border-bottom: 1px solid #444;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      font-size: 14px;
+    }
+    #pinned-list span {
+      margin-right: 12px;
+      background: rgba(255,255,255,0.1);
+      padding: 4px 8px;
+      border-radius: 6px;
+      display: inline-block;
+      max-width: 200px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
     #chat {
       flex: 1;
@@ -54,6 +76,7 @@
       box-shadow: 0 1px 4px rgba(0,0,0,0.2);
       font-size: 15px;
       position: relative;
+      cursor: pointer;
     }
     .my-msg {
       align-self: flex-end;
@@ -73,22 +96,25 @@
     .reaction {
       font-size: 14px;
       cursor: pointer;
-      margin-top: 3px;
+      margin-right: 4px;
       display: inline-block;
     }
     .reaction-popup {
       position: absolute;
-      bottom: -30px;
+      bottom: -34px;
       left: 0;
       background: #fff;
       padding: 5px;
       border-radius: 10px;
       box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-      display: none;
-      gap: 5px;
+      display: flex;
+      gap: 6px;
+      z-index: 10;
     }
     .reaction-container {
       margin-top: 5px;
+      display: flex;
+      gap: 6px;
     }
     .link-preview {
       border: 1px solid #ccc;
@@ -105,6 +131,14 @@
       padding: 5px;
       font-size: 13px;
     }
+    .quote-box {
+      background: rgba(255,255,255,0.1);
+      border-left: 4px solid #5cb85c;
+      padding: 6px 10px;
+      margin-bottom: 4px;
+      font-size: 13px;
+      border-radius: 6px;
+    }
     #form {
       display: flex;
       padding: 10px;
@@ -114,6 +148,7 @@
       position: sticky;
       bottom: 0;
       z-index: 1;
+      align-items: center;
     }
     #message {
       flex: 1;
@@ -135,6 +170,7 @@
       border-radius: 25px;
       font-size: 16px;
       cursor: pointer;
+      white-space: nowrap;
     }
     #send:hover { background: #4cae4c; }
     #resetBtn {
@@ -176,11 +212,17 @@
       font-size: 14px;
       margin-left: 5px;
     }
+    .pin-badge {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      font-size: 16px;
+    }
   </style>
 </head>
 <body oncontextmenu="return false">
   <div id="header">
-    <div>
+    <div style="display:flex; align-items:center; gap:10px;">
       <span id="welcome">Welcome</span>
       <span id="onlineStatus" class="user-status">⚪ Offline</span>
       <button id="resetBtn" onclick="resetChat()">Reset Chat</button>
@@ -188,6 +230,12 @@
     </div>
     <div id="time"></div>
   </div>
+
+  <div id="pinned">
+    <strong style="margin-right:6px;">Pinned:</strong>
+    <div id="pinned-list">None</div>
+  </div>
+
   <div id="chat"></div>
   <div id="typingStatus"></div>
   <form id="form" onsubmit="sendMessage(event)">
@@ -202,352 +250,492 @@
     <button onclick="rejectCall()">Reject</button>
   </div>
   <audio id="notifySound" src="https://notificationsounds.com/notification-sounds/pop-alert-112/download/mp3" preload="auto"></audio>
-<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-storage-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-storage-compat.js"></script>
 
-<script>
-  let userName = '';
-  let isTabActive = true;
+  <script>
+    let userName = '';
+    let isTabActive = true;
 
-  function isValidName(name) {
-    return /^[A-Za-z0-9 ]+$/.test(name);
-
-  }
-
-  async function authenticate() {
-    while (true) {
-      userName = prompt("Enter your name:");
-      if (!userName) return location.reload();
-      if (!isValidName(userName.trim())) {
-        alert("Can't use emojis or special characters. Please enter a valid name.");
-        continue;
-      }
-      const pass = prompt("Enter password:");
-      if (pass !== "avibrata") {
-        alert("Incorrect password!");
-        return location.reload();
-      }
-      document.getElementById('welcome').innerText = "Welcome, " + userName;
-      break;
+    function isValidName(name) {
+      return /^[A-Za-z0-9 ]+$/.test(name);
     }
-  }
 
-  setInterval(() => {
-    const now = new Date();
-    const formattedDateTime = now.toLocaleString('en-US', {
-      year: 'numeric', month: 'short', day: '2-digit',
-      hour: 'numeric', minute: 'numeric', second: 'numeric', hour12: true
+    async function authenticate() {
+      while (true) {
+        userName = prompt("Enter your name:");
+        if (!userName) return location.reload();
+        if (!isValidName(userName.trim())) {
+          alert("Can't use emojis or special characters. Please enter a valid name.");
+          continue;
+        }
+        const pass = prompt("Enter password:");
+        if (pass !== "avibrata") {
+          alert("Incorrect password!");
+          return location.reload();
+        }
+        document.getElementById('welcome').innerText = "Welcome, " + userName;
+        break;
+      }
+    }
+
+    setInterval(() => {
+      const now = new Date();
+      const formattedDateTime = now.toLocaleString('en-US', {
+        year: 'numeric', month: 'short', day: '2-digit',
+        hour: 'numeric', minute: 'numeric', second: 'numeric', hour12: true
+      });
+      document.getElementById('time').textContent = formattedDateTime;
+    }, 1000);
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyChEs8F4Jf8r7ivDIXV0nrH_RkPrs8J0XM",
+      authDomain: "online-chat-dm.firebaseapp.com",
+      databaseURL: "https://online-chat-dm-default-rtdb.firebaseio.com/",
+      projectId: "online-chat-dm",
+      storageBucket: "online-chat-dm.appspot.com",
+      messagingSenderId: "237057888481",
+      appId: "1:237057888481:web:1d10683fcc2e4c2a0aa7a0"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const storage = firebase.storage();
+
+    const chat = document.getElementById('chat');
+    const messageInput = document.getElementById('message');
+    const mediaInput = document.getElementById('mediaUpload');
+    const typingStatus = document.getElementById('typingStatus');
+    const notifySound = document.getElementById('notifySound');
+    const userColors = {};
+
+    function getUsernameColor(name) {
+      if (userColors[name]) return userColors[name];
+      const colors = ['#e74c3c','#3498db','#27ae60','#8e44ad','#f39c12','#1abc9c','#e67e22','#1e90ff'];
+      let hash = 0;
+      for (let i = 0; i < name.length; i++) {
+        hash = name.charCodeAt(i) + ((hash << 5) - hash);
+      }
+      const color = colors[Math.abs(hash) % colors.length];
+      userColors[name] = color;
+      return color;
+    }
+
+    function linkify(text) {
+      const urlRegex = /(https?:\/\/[^\s]+)/g;
+      return text.replace(urlRegex, '<a href="$1" target="_blank" style="color:#0275d8;">$1</a>');
+    }
+
+    // Online status
+    function setUserOnlineStatus(status) {
+      db.ref("usersOnline/" + userName).set(status);
+    }
+    window.addEventListener("beforeunload", () => {
+      db.ref("typing/" + userName).remove();
+      setUserOnlineStatus(false);
     });
-    document.getElementById('time').textContent = formattedDateTime;
-  }, 1000);
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyChEs8F4Jf8r7ivDIXV0nrH_RkPrs8J0XM",
-    authDomain: "online-chat-dm.firebaseapp.com",
-    databaseURL: "https://online-chat-dm-default-rtdb.firebaseio.com/",
-    projectId: "online-chat-dm",
-    storageBucket: "online-chat-dm.appspot.com",
-    messagingSenderId: "237057888481",
-    appId: "1:237057888481:web:1d10683fcc2e4c2a0aa7a0"
-  };
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.database();
-  const storage = firebase.storage();
-
-  const chat = document.getElementById('chat');
-  const messageInput = document.getElementById('message');
-  const mediaInput = document.getElementById('mediaUpload');
-  const typingStatus = document.getElementById('typingStatus');
-  const notifySound = document.getElementById('notifySound');
-  const userColors = {};
-
-  function getUsernameColor(name) {
-    if (userColors[name]) return userColors[name];
-    const colors = ['#e74c3c','#3498db','#27ae60','#8e44ad','#f39c12','#1abc9c','#e67e22','#1e90ff'];
-    let hash = 0;
-    for (let i = 0; i < name.length; i++) {
-      hash = name.charCodeAt(i) + ((hash << 5) - hash);
-    }
-    const color = colors[Math.abs(hash) % colors.length];
-    userColors[name] = color;
-    return color;
-  }
-
-  function linkify(text) {
-    const urlRegex = /(https?:\/\/[^\s]+)/g;
-    return text.replace(urlRegex, '<a href="$1" target="_blank" style="color:#0275d8;">$1</a>');
-  }
-
-  // Online Status
-  function setUserOnlineStatus(status) {
-    db.ref("usersOnline/" + userName).set(status);
-  }
-  window.addEventListener("beforeunload", () => {
-    db.ref("typing/" + userName).remove();
-    setUserOnlineStatus(false);
-  });
-
-  // Send Message
-  function sendMessage(e) {
-    e.preventDefault();
-    const msg = messageInput.value.trim();
-    if (msg) {
+    // Reply-aware sendMessage (stores snippet & name)
+    function sendMessage(e) {
+      e.preventDefault();
+      const msg = messageInput.value.trim();
+      if (!msg) return;
       const timestamp = new Date().toLocaleTimeString('en-US', {
         hour: 'numeric', minute: 'numeric', second: 'numeric', hour12: true
       });
-      db.ref("messages").push({
+      const form = document.getElementById('form');
+      let payload = {
         name: userName,
         text: msg,
         time: timestamp,
         delivered: true,
         seenBy: [userName],
         reactions: {}
-      });
+      };
+      if (form.dataset.replyTo) {
+        const repliedId = form.dataset.replyTo;
+        const originalDiv = document.querySelector(`[data-id="${repliedId}"]`);
+        let snippet = '';
+        let originalName = '';
+        if (originalDiv) {
+          const contentEl = originalDiv.querySelector('.content-wrapper');
+          snippet = contentEl ? contentEl.textContent.trim() : '';
+          if (!snippet) {
+            snippet = originalDiv.querySelector('video') ? '[Video]' :
+                      originalDiv.querySelector('img') ? '[Image]' : '';
+          }
+          if (snippet.length > 50) snippet = snippet.slice(0,47) + '...';
+          originalName = originalDiv.querySelector('strong')?.textContent || '';
+        }
+        payload.replyTo = repliedId;
+        payload.replySnippet = snippet;
+        payload.replyName = originalName;
+        delete form.dataset.replyTo;
+        const replyBox = document.getElementById('current-reply');
+        if (replyBox) replyBox.remove();
+      }
+      db.ref("messages").push(payload);
       messageInput.value = "";
       db.ref("typing/" + userName).remove();
     }
-  }
 
-  // Upload Media
-  mediaInput.addEventListener("change", () => {
-    const file = mediaInput.files[0];
-    if (!file) return;
-    const ref = storage.ref().child("media/" + Date.now() + "_" + file.name);
-    ref.put(file).then(snapshot => snapshot.ref.getDownloadURL()).then(url => {
-      const type = file.type.startsWith("image") ? "image" : "video";
-      const time = new Date().toLocaleTimeString('en-US', {
-        hour: 'numeric', minute: 'numeric', second: 'numeric', hour12: true
-      });
-      db.ref("messages").push({
-        name: userName,
-        mediaType: type,
-        mediaUrl: url,
-        time,
-        delivered: true,
-        seenBy: [userName],
-        reactions: {}
+    // Media upload
+    mediaInput.addEventListener("change", () => {
+      const file = mediaInput.files[0];
+      if (!file) return;
+      const ref = storage.ref().child("media/" + Date.now() + "_" + file.name);
+      ref.put(file).then(snapshot => snapshot.ref.getDownloadURL()).then(url => {
+        const type = file.type.startsWith("image") ? "image" : "video";
+        const time = new Date().toLocaleTimeString('en-US', {
+          hour: 'numeric', minute: 'numeric', second: 'numeric', hour12: true
+        });
+        db.ref("messages").push({
+          name: userName,
+          mediaType: type,
+          mediaUrl: url,
+          time,
+          delivered: true,
+          seenBy: [userName],
+          reactions: {}
+        });
       });
     });
-  });
 
-  // Typing Indicator
-  const TYPING_EXPIRY = 4000;
-  messageInput.addEventListener("input", () => {
-    const trimmed = messageInput.value.trim();
-    if (trimmed !== "") {
-      db.ref("typing/" + userName).set({ ts: Date.now() });
-    } else {
-      db.ref("typing/" + userName).remove();
+    // Typing indicator
+    const TYPING_EXPIRY = 4000;
+    messageInput.addEventListener("input", () => {
+      const trimmed = messageInput.value.trim();
+      if (trimmed !== "") db.ref("typing/" + userName).set({ ts: Date.now() });
+      else db.ref("typing/" + userName).remove();
+    });
+    messageInput.addEventListener("blur", () => { db.ref("typing/" + userName).remove(); });
+    document.addEventListener("visibilitychange", () => { isTabActive = !document.hidden; });
+    if (Notification.permission !== "granted") Notification.requestPermission();
+
+    // Deduplication map
+    const rendered = new Map();
+
+    // Mark seen safely (only add if absent)
+    function markSeenOnce(msgId, msg) {
+      if (msg.name !== userName) {
+        db.ref("messages/" + msgId + "/seenBy").once('value').then(snap => {
+          const seen = snap.val() || [];
+          if (!seen.includes(userName)) {
+            db.ref("messages/" + msgId + "/seenBy").set([...seen, userName]);
+          }
+        });
+      }
     }
-  });
-  messageInput.addEventListener("blur", () => {
-    db.ref("typing/" + userName).remove();
-  });
-  document.addEventListener("visibilitychange", () => {
-    isTabActive = !document.hidden;
-  });
-  if (Notification.permission !== "granted") {
-    Notification.requestPermission();
-  }
-  // Mark all existing messages as seen on load
-  function markAllSeen() {
-    db.ref("messages").once("value").then(snapshot => {
-      snapshot.forEach(snap => {
-        const msg = snap.val();
-        if (!msg.seenBy?.includes(userName)) {
-          db.ref("messages/" + snap.key + "/seenBy").transaction(seen => {
-            seen = seen || [];
-            if (!seen.includes(userName)) seen.push(userName);
-            return seen;
-          });
+
+    // Clean old to avoid double-binding
+    db.ref("messages").off();
+    db.ref("pins").off();
+
+    // Message listeners
+    db.ref("messages").on("child_added", snap => {
+      renderOrUpdateMessage(snap.key, snap.val());
+    });
+    db.ref("messages").on("child_changed", snap => {
+      renderOrUpdateMessage(snap.key, snap.val());
+    });
+
+    // Pinned list
+    db.ref('pins').on('value', snap => {
+      const pinned = snap.val() || {};
+      const container = document.getElementById('pinned-list');
+      container.innerHTML = '';
+      if (Object.keys(pinned).length === 0) {
+        container.textContent = 'None';
+        return;
+      }
+      Object.entries(pinned).forEach(([id, info]) => {
+        const el = document.createElement('span');
+        const text = info.msg?.text ? info.msg.text.split('\n')[0] : '[media]';
+        el.innerHTML = `<em>${info.by}</em>: ${text.length > 30 ? text.slice(0,27)+'...' : text}`;
+        container.appendChild(el);
+      });
+    });
+
+    function renderOrUpdateMessage(msgId, msg) {
+      markSeenOnce(msgId, msg);
+      const color = getUsernameColor(msg.name);
+      let div = rendered.get(msgId);
+
+      // Determine status icon
+      const statusIconText = (msg.name === userName)
+        ? ((msg.seenBy?.length > 1) ? "✅✅" : "✅")
+        : "";
+
+      // Compose content HTML
+      const contentHTML = msg.mediaUrl
+        ? (msg.mediaType === "image"
+            ? `<img src="${msg.mediaUrl}" width="200"/>`
+            : `<video src="${msg.mediaUrl}" controls width="200"></video>`)
+        : linkify(msg.text || "");
+
+      // Construct quote if any
+      let quoteHTML = '';
+      if (msg.replyTo && msg.replySnippet) {
+        quoteHTML = `<div class="quote-box"><strong>${msg.replyName || ''}:</strong> ${msg.replySnippet}</div>`;
+      }
+
+      if (div) {
+        // Update read receipt
+        if (msg.name === userName) {
+          const statusSpan = div.querySelector('.statusIcon');
+          if (statusSpan) statusSpan.textContent = statusIconText;
+        }
+        // Update quote
+        const existingQuote = div.querySelector('.quote-box');
+        if (existingQuote) {
+          if (quoteHTML) existingQuote.outerHTML = quoteHTML;
+          else existingQuote.remove();
+        } else if (quoteHTML) {
+          const contentWrapper = div.querySelector('.content-wrapper');
+          if (contentWrapper) contentWrapper.insertAdjacentHTML('beforebegin', quoteHTML);
+        }
+        // Update main content
+        const contentWrapper = div.querySelector('.content-wrapper');
+        if (contentWrapper) {
+          if (msg.mediaUrl) {
+            contentWrapper.innerHTML = msg.mediaType === "image"
+              ? `<img src="${msg.mediaUrl}" width="200"/>`
+              : `<video src="${msg.mediaUrl}" controls width="200"></video>`;
+          } else {
+            contentWrapper.innerHTML = linkify(msg.text || "");
+          }
+        }
+        // Update reactions
+        const existingReact = div.querySelector('.reaction-container');
+        if (existingReact) existingReact.remove();
+        if (msg.reactions && Object.keys(msg.reactions).length > 0) {
+          const reactDiv = document.createElement("div");
+          reactDiv.className = "reaction-container";
+          for (let user in msg.reactions) {
+            const span = document.createElement('span');
+            span.className = 'reaction';
+            span.textContent = msg.reactions[user];
+            reactDiv.appendChild(span);
+          }
+          div.appendChild(reactDiv);
+        }
+        // Update pin badge
+        div.querySelectorAll('.pin-badge').forEach(n => n.remove());
+        db.ref('pins/' + msgId).once('value').then(s => {
+          if (s.exists()) {
+            const badge = document.createElement('div');
+            badge.className = 'pin-badge';
+            badge.textContent = '📌';
+            div.appendChild(badge);
+          }
+        });
+        return;
+      }
+
+      // Create new message element
+      div = document.createElement("div");
+      div.className = `msg ${msg.name === userName ? 'my-msg' : 'other-msg'}`;
+      div.setAttribute("data-id", msgId);
+      div.innerHTML = `
+        <strong style="color:${color}">${msg.name}</strong><br>
+        ${quoteHTML}
+        <div class="content-wrapper">${contentHTML}</div><br>
+        <small>${msg.time} <span class="statusIcon">${statusIconText}</span></small>
+      `;
+
+      // Pin toggle
+      const pinBtn = document.createElement('span');
+      pinBtn.textContent = '📌';
+      pinBtn.style.cursor = 'pointer';
+      pinBtn.style.marginLeft = '8px';
+      pinBtn.title = 'Pin/unpin message';
+      pinBtn.onclick = (e) => {
+        e.stopPropagation();
+        const pinRef = db.ref('pins/' + msgId);
+        pinRef.once('value').then(snap => {
+          if (snap.exists()) {
+            pinRef.remove();
+          } else {
+            pinRef.set({
+              by: userName,
+              timestamp: Date.now(),
+              msg: msg
+            });
+          }
+        });
+      };
+      div.appendChild(pinBtn);
+
+      // Pin badge if pinned
+      db.ref('pins/' + msgId).once('value').then(s => {
+        if (s.exists()) {
+          const badge = document.createElement('div');
+          badge.className = 'pin-badge';
+          badge.textContent = '📌';
+          div.appendChild(badge);
         }
       });
-    });
-  }
 
-    // Listen for new messages
-  db.ref("messages").on("child_added", snap => {
-    if (document.querySelector(`[data-id="${snap.key}"]`)) return; // guard against duplicates
-    renderMessage(snap.key, snap.val());
-  });
-
-  // Listen for updates (like reactions, edits, seen status)
-  db.ref("messages").on("child_changed", snap => {
-    renderMessage(snap.key, snap.val());
-  });
-
-  function renderMessage(msgId, msg) {
-    // remove existing if any (prevents duplicates)
-    const prev = document.querySelector(`[data-id="${msgId}"]`);
-    if (prev) prev.remove();
-
-    // Mark as seen if needed
-    if (!msg.seenBy?.includes(userName)) {
-      db.ref("messages/" + msgId + "/seenBy").transaction(seen => {
-        seen = seen || [];
-        if (!seen.includes(userName)) seen.push(userName);
-        return seen;
-      });
-    }
-
-    const div = document.createElement("div");
-    div.className = `msg ${msg.name === userName ? 'my-msg' : 'other-msg'}`;
-    div.setAttribute("data-id", msgId);
-    const color = getUsernameColor(msg.name);
-
-    // Read Receipts
-    let statusIcon = "";
-    if (msg.name === userName) {
-      statusIcon = (msg.seenBy?.length > 1) ? "✅✅" : "✅";
-    }
-
-    // Main content
-    let content = "";
-    if (msg.mediaUrl) {
-      content = msg.mediaType === "image"
-        ? `<img src="${msg.mediaUrl}" width="200"/>`
-        : `<video src="${msg.mediaUrl}" controls width="200"></video>`;
-    } else {
-      content = linkify(msg.text || "");
-    }
-
-    div.innerHTML = `<strong style="color:${color}">${msg.name}</strong><br>${content}<br>
-      <small>${msg.time} <span class="statusIcon">${statusIcon}</span></small>`;
-
-    // Reactions display
-    if (msg.reactions && Object.keys(msg.reactions).length > 0) {
-      const reactDiv = document.createElement("div");
-      reactDiv.className = "reaction-container";
-      for (let user in msg.reactions) {
-        reactDiv.innerHTML += `<span class="reaction">${msg.reactions[user]}</span>`;
+      // Reactions display
+      if (msg.reactions && Object.keys(msg.reactions).length > 0) {
+        const reactDiv = document.createElement("div");
+        reactDiv.className = "reaction-container";
+        for (let user in msg.reactions) {
+          const span = document.createElement('span');
+          span.className = 'reaction';
+          span.textContent = msg.reactions[user];
+          reactDiv.appendChild(span);
+        }
+        div.appendChild(reactDiv);
       }
-      div.appendChild(reactDiv);
+
+      // Reaction popup
+      div.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const existingPopup = div.querySelector(".reaction-popup");
+        if (existingPopup) existingPopup.remove();
+        const popup = document.createElement("div");
+        popup.className = "reaction-popup";
+        ["❤️","😂","👍"].forEach(r => {
+          const btn = document.createElement("span");
+          btn.textContent = r;
+          btn.style.userSelect = 'none';
+          btn.onclick = (ev) => {
+            ev.stopPropagation();
+            db.ref("messages/" + msgId + "/reactions/" + userName).set(r);
+            popup.remove();
+          };
+          popup.appendChild(btn);
+        });
+        div.appendChild(popup);
+        popup.style.display = "flex";
+        setTimeout(()=>popup.remove(), 3000);
+      });
+
+      // Edit/Delete own
+      if (msg.name === userName) {
+        div.addEventListener("contextmenu", (e) => {
+          e.preventDefault();
+          const action = prompt("Type 'edit' to edit or 'delete' to delete:");
+          if (action === "edit") {
+            const newText = prompt("Enter new message:", msg.text || "");
+            if (newText !== null) {
+              db.ref("messages/" + msgId).update({ text: newText + " (edited)" });
+            }
+          } else if (action === "delete") {
+            db.ref("messages/" + msgId).update({
+              text: "This message was deleted",
+              mediaUrl: null
+            });
+          }
+        });
+      }
+
+      // Reply quoting button
+      const replyBtn = document.createElement('span');
+      replyBtn.textContent = ' Reply';
+      replyBtn.style.cursor = 'pointer';
+      replyBtn.style.fontSize = '12px';
+      replyBtn.style.marginLeft = '8px';
+      replyBtn.style.color = '#0275d8';
+      replyBtn.onclick = (e) => {
+        e.stopPropagation();
+        const originalText = msg.text || (msg.mediaType === 'image' ? '[Image]' : '[Media]');
+        const form = document.getElementById('form');
+        const existing = document.getElementById('current-reply');
+        if (existing) existing.remove();
+        const quoted = document.createElement('div');
+        quoted.id = 'current-reply';
+        quoted.innerHTML = `<div class="quote-box"><strong>${msg.name}:</strong> ${originalText}</div>`;
+        form.prepend(quoted);
+        form.dataset.replyTo = msgId;
+      };
+      div.appendChild(replyBtn);
+
+      // Link preview
+      if (/(https?:\/\/[^\s]+)/.test(msg.text || "")) {
+        const url = msg.text.match(/https?:\/\/[^\s]+/)[0];
+        fetch(`https://api.linkpreview.net/?key=123456&q=${encodeURIComponent(url)}`)
+          .then(res => res.json())
+          .then(data => {
+            if (data && data.title) {
+              const preview = document.createElement("div");
+              preview.className = "link-preview";
+              preview.innerHTML = `
+                <img src="${data.image || ''}" alt="">
+                <div class="content">
+                  <strong>${data.title}</strong><br>
+                  <small>${data.description || ''}</small>
+                </div>
+              `;
+              div.appendChild(preview);
+            }
+          }).catch(()=>{});
+      }
+
+      chat.appendChild(div);
+      chat.scrollTop = chat.scrollHeight;
+
+      // Notification
+      if (msg.name !== userName && !isTabActive) {
+        notifySound.play().catch(()=>{});
+        if (Notification.permission === "granted") {
+          new Notification(msg.name, { body: msg.text || "Sent a file" });
+        }
+      }
+
+      rendered.set(msgId, div);
     }
 
-    // Reaction popup
-    div.addEventListener("click", (e) => {
-      e.stopPropagation();
-      const existingPopup = div.querySelector(".reaction-popup");
-      if (existingPopup) existingPopup.remove();
-      const popup = document.createElement("div");
-      popup.className = "reaction-popup";
-      ["❤️","😂","👍"].forEach(r => {
-        const btn = document.createElement("span");
-        btn.textContent = r;
-        btn.onclick = () => {
-          db.ref("messages/" + msgId + "/reactions/" + userName).set(r);
-          popup.remove();
-        };
-        popup.appendChild(btn);
-      });
-      div.appendChild(popup);
-      popup.style.display = "flex";
-      setTimeout(()=>popup.remove(), 3000);
-    });
-
-    // Edit/Delete for own messages
-    if (msg.name === userName) {
-      div.addEventListener("contextmenu", (e) => {
-        e.preventDefault();
-        const action = prompt("Type 'edit' to edit or 'delete' to delete:");
-        if (action === "edit") {
-          const newText = prompt("Enter new message:", msg.text || "");
-          if (newText !== null) {
-            db.ref("messages/" + msgId).update({ text: newText + " (edited)" });
-          }
-        } else if (action === "delete") {
-          db.ref("messages/" + msgId).update({
-            text: "This message was deleted",
-            mediaUrl: null
-          });
+    // Typing indicator listener
+    db.ref("typing").on("value", snap => {
+      const users = [];
+      const now = Date.now();
+      snap.forEach(child => {
+        const key = child.key;
+        if (key === userName) return;
+        const val = child.val();
+        if (val && val.ts && (now - val.ts) < TYPING_EXPIRY) {
+          users.push(key);
         }
       });
-    }
-
-    // Link Preview
-    if (/(https?:\/\/[^\s]+)/.test(msg.text || "")) {
-      const url = msg.text.match(/https?:\/\/[^\s]+/)[0];
-      fetch(`https://api.linkpreview.net/?key=123456&q=${encodeURIComponent(url)}`)
-        .then(res => res.json())
-        .then(data => {
-          if (data && data.title) {
-            const preview = document.createElement("div");
-            preview.className = "link-preview";
-            preview.innerHTML = `
-              <img src="${data.image || ''}" alt="">
-              <div class="content">
-                <strong>${data.title}</strong><br>
-                <small>${data.description || ''}</small>
-              </div>
-            `;
-            div.appendChild(preview);
-          }
-        }).catch(()=>{});
-    }
-
-    chat.appendChild(div);
-    chat.scrollTop = chat.scrollHeight;
-
-    // Notifications for new messages
-    if (msg.name !== userName && !isTabActive) {
-      notifySound.play().catch(() => {});
-      if (Notification.permission === "granted") {
-        new Notification(msg.name, { body: msg.text || "Sent a file" });
-      }
-    }
-  }
-
-  // Typing Indicator
-  db.ref("typing").on("value", snap => {
-    const users = [];
-    const now = Date.now();
-    snap.forEach(child => {
-      const key = child.key;
-      if (key === userName) return;
-      const val = child.val();
-      if (val && val.ts && (now - val.ts) < TYPING_EXPIRY) {
-        users.push(key);
-      }
+      typingStatus.innerText = users.length ? users.join(", ") + " typing..." : "";
     });
-    typingStatus.innerText = users.length ? users.join(", ") + " typing..." : "";
-  });
 
-  // Online Status
-  db.ref("usersOnline").on("value", snap => {
-    const onlineUsers = snap.val() || {};
-    document.getElementById('onlineStatus').innerText =
-      onlineUsers[userName] ? "🟢 Online" : "⚪ Offline";
-  });
+    // Online status display
+    db.ref("usersOnline").on("value", snap => {
+      const onlineUsers = snap.val() || {};
+      document.getElementById('onlineStatus').innerText =
+        onlineUsers[userName] ? "🟢 Online" : "⚪ Offline";
+    });
 
-  // Reset Chat
-  function resetChat() {
-    if (confirm("Are you sure?")) db.ref("messages").remove();
-  }
-
-  // Voice Call Placeholder
-  const callChannel = new BroadcastChannel("webrtc-call");
-  function startCall() {
-    callChannel.postMessage({ type: 'offer', from: userName });
-    alert("Calling... (waiting for response)");
-  }
-  callChannel.onmessage = ({ data }) => {
-    if (data.type === 'offer' && data.from !== userName) {
-      document.getElementById("incomingCall").style.display = "block";
-      document.getElementById("callerInfo").innerText = `Incoming call from ${data.from}`;
+    // Reset
+    function resetChat() {
+      if (confirm("Are you sure?")) db.ref("messages").remove();
     }
-  };
-  function acceptCall() {
-    alert("Call accepted! (Voice feature placeholder)");
-    document.getElementById("incomingCall").style.display = "none";
-  }
-  function rejectCall() {
-    document.getElementById("incomingCall").style.display = "none";
-  }
 
-  authenticate();
-  setUserOnlineStatus(true);
-  markAllSeen();
-</script>
+    // Call placeholder
+    const callChannel = new BroadcastChannel("webrtc-call");
+    function startCall() {
+      callChannel.postMessage({ type: 'offer', from: userName });
+      alert("Calling... (waiting for response)");
+    }
+    callChannel.onmessage = ({ data }) => {
+      if (data.type === 'offer' && data.from !== userName) {
+        document.getElementById("incomingCall").style.display = "block";
+        document.getElementById("callerInfo").innerText = `Incoming call from ${data.from}`;
+      }
+    };
+    function acceptCall() {
+      alert("Call accepted! (Voice feature placeholder)");
+      document.getElementById("incomingCall").style.display = "none";
+    }
+    function rejectCall() {
+      document.getElementById("incomingCall").style.display = "none";
+    }
+
+    authenticate();
+    setUserOnlineStatus(true);
+  </script>
 </body>
 </html>
