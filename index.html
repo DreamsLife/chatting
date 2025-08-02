@@ -366,19 +366,22 @@
     });
   }
 
-  // Listen for new messages
+    // Listen for new messages
   db.ref("messages").on("child_added", snap => {
+    if (document.querySelector(`[data-id="${snap.key}"]`)) return; // guard against duplicates
     renderMessage(snap.key, snap.val());
   });
 
   // Listen for updates (like reactions, edits, seen status)
   db.ref("messages").on("child_changed", snap => {
-    const existingDiv = document.querySelector(`[data-id="${snap.key}"]`);
-    if (existingDiv) existingDiv.remove();
     renderMessage(snap.key, snap.val());
   });
 
   function renderMessage(msgId, msg) {
+    // remove existing if any (prevents duplicates)
+    const prev = document.querySelector(`[data-id="${msgId}"]`);
+    if (prev) prev.remove();
+
     // Mark as seen if needed
     if (!msg.seenBy?.includes(userName)) {
       db.ref("messages/" + msgId + "/seenBy").transaction(seen => {
@@ -425,6 +428,8 @@
     // Reaction popup
     div.addEventListener("click", (e) => {
       e.stopPropagation();
+      const existingPopup = div.querySelector(".reaction-popup");
+      if (existingPopup) existingPopup.remove();
       const popup = document.createElement("div");
       popup.className = "reaction-popup";
       ["❤️","😂","👍"].forEach(r => {
