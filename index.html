@@ -17,7 +17,6 @@
       position: relative;
       z-index: 0;
     }
-
     body::before {
       content: "";
       position: fixed;
@@ -28,7 +27,6 @@
       z-index: -1;
       backdrop-filter: blur(6px);
     }
-
     #header {
       background-color: rgba(33, 37, 41, 0.95);
       color: #e0e0e0;
@@ -39,7 +37,6 @@
       font-size: 19px;
       box-shadow: 0 2px 6px rgba(0,0,0,0.3);
     }
-
     #chat {
       flex: 1;
       padding: 15px;
@@ -47,7 +44,6 @@
       display: flex;
       flex-direction: column;
     }
-
     .msg {
       max-width: 70%;
       padding: 10px 14px;
@@ -57,20 +53,58 @@
       backdrop-filter: blur(4px);
       box-shadow: 0 1px 4px rgba(0,0,0,0.2);
       font-size: 15px;
+      position: relative;
     }
-
     .my-msg {
       align-self: flex-end;
       background: #d2f8d2;
       color: #1a1a1a;
     }
-
     .other-msg {
       align-self: flex-start;
       background: #f4f4f4;
       color: #111;
     }
-
+    .statusIcon {
+      font-size: 12px;
+      margin-left: 5px;
+      color: gray;
+    }
+    .reaction {
+      font-size: 14px;
+      cursor: pointer;
+      margin-top: 3px;
+      display: inline-block;
+    }
+    .reaction-popup {
+      position: absolute;
+      bottom: -30px;
+      left: 0;
+      background: #fff;
+      padding: 5px;
+      border-radius: 10px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      display: none;
+      gap: 5px;
+    }
+    .reaction-container {
+      margin-top: 5px;
+    }
+    .link-preview {
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      overflow: hidden;
+      margin-top: 5px;
+      background: white;
+    }
+    .link-preview img {
+      width: 100%;
+      height: auto;
+    }
+    .link-preview .content {
+      padding: 5px;
+      font-size: 13px;
+    }
     #form {
       display: flex;
       padding: 10px;
@@ -81,7 +115,6 @@
       bottom: 0;
       z-index: 1;
     }
-
     #message {
       flex: 1;
       padding: 12px 15px;
@@ -90,12 +123,10 @@
       border-radius: 25px;
       outline: none;
     }
-
     #message:focus {
       border-color: #5cb85c;
       box-shadow: 0 0 5px rgba(92, 184, 92, 0.5);
     }
-
     #send {
       padding: 0 20px;
       background: #5cb85c;
@@ -104,13 +135,8 @@
       border-radius: 25px;
       font-size: 16px;
       cursor: pointer;
-      white-space: nowrap;
     }
-
-    #send:hover {
-      background: #4cae4c;
-    }
-
+    #send:hover { background: #4cae4c; }
     #resetBtn {
       background: #d9534f;
       color: white;
@@ -120,14 +146,12 @@
       font-size: 14px;
       cursor: pointer;
     }
-
     #typingStatus {
       font-size: 14px;
       padding-left: 15px;
       color: #ccc;
       height: 18px;
     }
-
     #callBtn {
       margin-left: 10px;
       background: #0275d8;
@@ -138,7 +162,6 @@
       font-size: 14px;
       cursor: pointer;
     }
-
     #incomingCall {
       position: fixed;
       bottom: 10px;
@@ -149,242 +172,377 @@
       display: none;
       box-shadow: 0 2px 10px rgba(0,0,0,0.2);
     }
-
-    @media (max-width: 600px) {
-      #send {
-        padding: 0 12px;
-        font-size: 14px;
-      }
-      #message {
-        font-size: 14px;
-      }
-      #header {
-        flex-wrap: wrap;
-        gap: 8px;
-      }
+    .user-status {
+      font-size: 14px;
+      margin-left: 5px;
     }
   </style>
 </head>
-
 <body oncontextmenu="return false">
   <div id="header">
     <div>
       <span id="welcome">Welcome</span>
+      <span id="onlineStatus" class="user-status">⚪ Offline</span>
       <button id="resetBtn" onclick="resetChat()">Reset Chat</button>
       <button id="callBtn" onclick="startCall()">Voice Call</button>
     </div>
     <div id="time"></div>
   </div>
-
   <div id="chat"></div>
   <div id="typingStatus"></div>
-
   <form id="form" onsubmit="sendMessage(event)">
     <input type="text" id="message" placeholder="Type a message..." autocomplete="off" required />
     <input type="file" id="mediaUpload" accept="image/*,video/*" style="display:none;" capture="environment"/>
     <button type="button" onclick="document.getElementById('mediaUpload').click()">📷</button>
     <button type="submit" id="send">Send</button>
   </form>
-
   <div id="incomingCall">
     <p id="callerInfo"></p>
     <button onclick="acceptCall()">Accept</button>
     <button onclick="rejectCall()">Reject</button>
   </div>
-
   <audio id="notifySound" src="https://notificationsounds.com/notification-sounds/pop-alert-112/download/mp3" preload="auto"></audio>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-storage-compat.js"></script>
 
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-storage-compat.js"></script>
+<script>
+  let userName = '';
+  let isTabActive = true;
 
-  <script>
-    let userName = '';
-    let pc, localStream;
+  function isValidName(name) {
+    return /^[A-Za-z0-9 ]+$/.test(name);
 
-    function isValidName(name) {
-      return /^[A-Za-z0-9 ]+$/.test(name);
-    }
+  }
 
-    async function authenticate() {
-      while (true) {
-        userName = prompt("Enter your name:");
-        if (!userName) return location.reload();
-        if (!isValidName(userName.trim())) {
-          alert("Can't use emojis or special characters. Please enter a valid name."); 
-          continue;
-        }
-        const pass = prompt("Enter password:");
-        if (pass !== "avibrata") {
-          alert("Incorrect password!");
-          return location.reload();
-        }
-        document.getElementById('welcome').innerText = "Welcome, " + userName;
-        break;
+  async function authenticate() {
+    while (true) {
+      userName = prompt("Enter your name:");
+      if (!userName) return location.reload();
+      if (!isValidName(userName.trim())) {
+        alert("Can't use emojis or special characters. Please enter a valid name.");
+        continue;
       }
-    }
-
-    setInterval(() => {
-      const now = new Date();
-      const formattedDateTime = now.toLocaleString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: '2-digit',
-        hour: 'numeric',
-        minute: 'numeric',
-        second: 'numeric',
-        hour12: true
-      });
-      document.getElementById('time').textContent = formattedDateTime;
-    }, 1000);
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyChEs8F4Jf8r7ivDIXV0nrH_RkPrs8J0XM",
-      authDomain: "online-chat-dm.firebaseapp.com",
-      databaseURL: "https://online-chat-dm-default-rtdb.firebaseio.com/",
-      projectId: "online-chat-dm",
-      storageBucket: "online-chat-dm.appspot.com",
-      messagingSenderId: "237057888481",
-      appId: "1:237057888481:web:1d10683fcc2e4c2a0aa7a0"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-    const storage = firebase.storage();
-
-    const chat = document.getElementById('chat');
-    const messageInput = document.getElementById('message');
-    const mediaInput = document.getElementById('mediaUpload');
-    const typingStatus = document.getElementById('typingStatus');
-    const notifySound = document.getElementById('notifySound');
-
-    const userColors = {};
-
-    function getUsernameColor(name) {
-      if (userColors[name]) return userColors[name];
-      const colors = ['#e74c3c', '#3498db', '#27ae60', '#8e44ad', '#f39c12', '#1abc9c', '#e67e22', '#1e90ff'];
-      let hash = 0;
-      for (let i = 0; i < name.length; i++) {
-        hash = name.charCodeAt(i) + ((hash << 5) - hash);
+      const pass = prompt("Enter password:");
+      if (pass !== "avibrata") {
+        alert("Incorrect password!");
+        return location.reload();
       }
-      const color = colors[Math.abs(hash) % colors.length];
-      userColors[name] = color;
-      return color;
+      document.getElementById('welcome').innerText = "Welcome, " + userName;
+      break;
     }
+  }
 
-    function linkify(text) {
-      const urlRegex = /(https?:\/\/[^\s]+)/g;
-      return text.replace(urlRegex, '<a href="$1" target="_blank" style="color:#0275d8;">$1</a>');
-    }
-
-    function sendMessage(e) {
-      e.preventDefault();
-      const msg = messageInput.value.trim();
-      if (msg) {
-        const timestamp = new Date().toLocaleTimeString('en-US', {
-          hour: 'numeric',
-          minute: 'numeric',
-          second: 'numeric',
-          hour12: true
-        });
-        db.ref("messages").push({ name: userName, text: msg, time: timestamp });
-        messageInput.value = "";
-        db.ref("typing/" + userName).remove();
-      }
-    }
-
-    mediaInput.addEventListener("change", () => {
-      const file = mediaInput.files[0];
-      if (!file) return;
-      const ref = storage.ref().child("media/" + Date.now() + "_" + file.name);
-      ref.put(file).then(snapshot => snapshot.ref.getDownloadURL()).then(url => {
-        const type = file.type.startsWith("image") ? "image" : "video";
-        const time = new Date().toLocaleTimeString('en-US', {
-          hour: 'numeric',
-          minute: 'numeric',
-          second: 'numeric',
-          hour12: true
-        });
-        db.ref("messages").push({ name: userName, mediaType: type, mediaUrl: url, time });
-      });
+  setInterval(() => {
+    const now = new Date();
+    const formattedDateTime = now.toLocaleString('en-US', {
+      year: 'numeric', month: 'short', day: '2-digit',
+      hour: 'numeric', minute: 'numeric', second: 'numeric', hour12: true
     });
+    document.getElementById('time').textContent = formattedDateTime;
+  }, 1000);
 
-    const TYPING_EXPIRY = 4000;
-    let typingTimeout;
-    messageInput.addEventListener("input", () => {
-      const trimmed = messageInput.value.trim();
-      if (trimmed !== "") {
-        db.ref("typing/" + userName).set({ ts: Date.now() });
-      } else {
-        db.ref("typing/" + userName).remove();
-      }
-    });
-    messageInput.addEventListener("blur", () => {
+  const firebaseConfig = {
+    apiKey: "AIzaSyChEs8F4Jf8r7ivDIXV0nrH_RkPrs8J0XM",
+    authDomain: "online-chat-dm.firebaseapp.com",
+    databaseURL: "https://online-chat-dm-default-rtdb.firebaseio.com/",
+    projectId: "online-chat-dm",
+    storageBucket: "online-chat-dm.appspot.com",
+    messagingSenderId: "237057888481",
+    appId: "1:237057888481:web:1d10683fcc2e4c2a0aa7a0"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+  const storage = firebase.storage();
+
+  const chat = document.getElementById('chat');
+  const messageInput = document.getElementById('message');
+  const mediaInput = document.getElementById('mediaUpload');
+  const typingStatus = document.getElementById('typingStatus');
+  const notifySound = document.getElementById('notifySound');
+  const userColors = {};
+
+  function getUsernameColor(name) {
+    if (userColors[name]) return userColors[name];
+    const colors = ['#e74c3c','#3498db','#27ae60','#8e44ad','#f39c12','#1abc9c','#e67e22','#1e90ff'];
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) {
+      hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const color = colors[Math.abs(hash) % colors.length];
+    userColors[name] = color;
+    return color;
+  }
+
+  function linkify(text) {
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    return text.replace(urlRegex, '<a href="$1" target="_blank" style="color:#0275d8;">$1</a>');
+  }
+
+  // Online Status
+  function setUserOnlineStatus(status) {
+    db.ref("usersOnline/" + userName).set(status);
+  }
+  window.addEventListener("beforeunload", () => {
+    db.ref("typing/" + userName).remove();
+    setUserOnlineStatus(false);
+  });
+
+  // Send Message
+  function sendMessage(e) {
+    e.preventDefault();
+    const msg = messageInput.value.trim();
+    if (msg) {
+      const timestamp = new Date().toLocaleTimeString('en-US', {
+        hour: 'numeric', minute: 'numeric', second: 'numeric', hour12: true
+      });
+      db.ref("messages").push({
+        name: userName,
+        text: msg,
+        time: timestamp,
+        delivered: true,
+        seenBy: [userName],
+        reactions: {}
+      });
+      messageInput.value = "";
       db.ref("typing/" + userName).remove();
+    }
+  }
+
+  // Upload Media
+  mediaInput.addEventListener("change", () => {
+    const file = mediaInput.files[0];
+    if (!file) return;
+    const ref = storage.ref().child("media/" + Date.now() + "_" + file.name);
+    ref.put(file).then(snapshot => snapshot.ref.getDownloadURL()).then(url => {
+      const type = file.type.startsWith("image") ? "image" : "video";
+      const time = new Date().toLocaleTimeString('en-US', {
+        hour: 'numeric', minute: 'numeric', second: 'numeric', hour12: true
+      });
+      db.ref("messages").push({
+        name: userName,
+        mediaType: type,
+        mediaUrl: url,
+        time,
+        delivered: true,
+        seenBy: [userName],
+        reactions: {}
+      });
     });
-    window.addEventListener("beforeunload", () => {
+  });
+
+  // Typing Indicator
+  const TYPING_EXPIRY = 4000;
+  messageInput.addEventListener("input", () => {
+    const trimmed = messageInput.value.trim();
+    if (trimmed !== "") {
+      db.ref("typing/" + userName).set({ ts: Date.now() });
+    } else {
       db.ref("typing/" + userName).remove();
-    });
-
-    db.ref("messages").on("child_added", snap => {
-      const msg = snap.val();
-      const div = document.createElement("div");
-      div.className = `msg ${msg.name === userName ? 'my-msg' : 'other-msg'}`;
-      const color = getUsernameColor(msg.name);
-
-      if (msg.mediaUrl) {
-        div.innerHTML = msg.mediaType === "image"
-          ? `<strong style="color:${color}">${msg.name}</strong><br><img src="${msg.mediaUrl}" width="200"/><br><small>${msg.time}</small>`
-          : `<strong style="color:${color}">${msg.name}</strong><br><video src="${msg.mediaUrl}" controls width="200"></video><br><small>${msg.time}</small>`;
-      } else {
-        div.innerHTML = `<strong style="color:${color}">${msg.name}</strong><br>${linkify(msg.text)}<br><small>${msg.time}</small>`;
-      }
-
-      chat.appendChild(div);
-      chat.scrollTop = chat.scrollHeight;
-      if (msg.name !== userName) notifySound.play().catch(() => {});
-    });
-
-    db.ref("typing").on("value", snap => {
-      const users = [];
-      const now = Date.now();
-      snap.forEach(child => {
-        const key = child.key;
-        if (key === userName) return;
-        const val = child.val();
-        if (val && val.ts && (now - val.ts) < TYPING_EXPIRY) {
-          users.push(key);
+    }
+  });
+  messageInput.addEventListener("blur", () => {
+    db.ref("typing/" + userName).remove();
+  });
+  document.addEventListener("visibilitychange", () => {
+    isTabActive = !document.hidden;
+  });
+  if (Notification.permission !== "granted") {
+    Notification.requestPermission();
+  }
+  // Mark all existing messages as seen on load
+  function markAllSeen() {
+    db.ref("messages").once("value").then(snapshot => {
+      snapshot.forEach(snap => {
+        const msg = snap.val();
+        if (!msg.seenBy?.includes(userName)) {
+          db.ref("messages/" + snap.key + "/seenBy").transaction(seen => {
+            seen = seen || [];
+            if (!seen.includes(userName)) seen.push(userName);
+            return seen;
+          });
         }
       });
-      typingStatus.innerText = users.length ? users.join(", ") + " typing..." : "";
+    });
+  }
+
+  // Listen for new messages
+  db.ref("messages").on("child_added", snap => {
+    renderMessage(snap.key, snap.val());
+  });
+
+  // Listen for updates (like reactions, edits, seen status)
+  db.ref("messages").on("child_changed", snap => {
+    const existingDiv = document.querySelector(`[data-id="${snap.key}"]`);
+    if (existingDiv) existingDiv.remove();
+    renderMessage(snap.key, snap.val());
+  });
+
+  function renderMessage(msgId, msg) {
+    // Mark as seen if needed
+    if (!msg.seenBy?.includes(userName)) {
+      db.ref("messages/" + msgId + "/seenBy").transaction(seen => {
+        seen = seen || [];
+        if (!seen.includes(userName)) seen.push(userName);
+        return seen;
+      });
+    }
+
+    const div = document.createElement("div");
+    div.className = `msg ${msg.name === userName ? 'my-msg' : 'other-msg'}`;
+    div.setAttribute("data-id", msgId);
+    const color = getUsernameColor(msg.name);
+
+    // Read Receipts
+    let statusIcon = "";
+    if (msg.name === userName) {
+      statusIcon = (msg.seenBy?.length > 1) ? "✅✅" : "✅";
+    }
+
+    // Main content
+    let content = "";
+    if (msg.mediaUrl) {
+      content = msg.mediaType === "image"
+        ? `<img src="${msg.mediaUrl}" width="200"/>`
+        : `<video src="${msg.mediaUrl}" controls width="200"></video>`;
+    } else {
+      content = linkify(msg.text || "");
+    }
+
+    div.innerHTML = `<strong style="color:${color}">${msg.name}</strong><br>${content}<br>
+      <small>${msg.time} <span class="statusIcon">${statusIcon}</span></small>`;
+
+    // Reactions display
+    if (msg.reactions && Object.keys(msg.reactions).length > 0) {
+      const reactDiv = document.createElement("div");
+      reactDiv.className = "reaction-container";
+      for (let user in msg.reactions) {
+        reactDiv.innerHTML += `<span class="reaction">${msg.reactions[user]}</span>`;
+      }
+      div.appendChild(reactDiv);
+    }
+
+    // Reaction popup
+    div.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const popup = document.createElement("div");
+      popup.className = "reaction-popup";
+      ["❤️","😂","👍"].forEach(r => {
+        const btn = document.createElement("span");
+        btn.textContent = r;
+        btn.onclick = () => {
+          db.ref("messages/" + msgId + "/reactions/" + userName).set(r);
+          popup.remove();
+        };
+        popup.appendChild(btn);
+      });
+      div.appendChild(popup);
+      popup.style.display = "flex";
+      setTimeout(()=>popup.remove(), 3000);
     });
 
-    function resetChat() {
-      if (confirm("Are you sure?")) db.ref("messages").remove();
+    // Edit/Delete for own messages
+    if (msg.name === userName) {
+      div.addEventListener("contextmenu", (e) => {
+        e.preventDefault();
+        const action = prompt("Type 'edit' to edit or 'delete' to delete:");
+        if (action === "edit") {
+          const newText = prompt("Enter new message:", msg.text || "");
+          if (newText !== null) {
+            db.ref("messages/" + msgId).update({ text: newText + " (edited)" });
+          }
+        } else if (action === "delete") {
+          db.ref("messages/" + msgId).update({
+            text: "This message was deleted",
+            mediaUrl: null
+          });
+        }
+      });
     }
 
-    const callChannel = new BroadcastChannel("webrtc-call");
-    function startCall() {
-      callChannel.postMessage({ type: 'offer', from: userName });
-      alert("Calling... (waiting for response)");
+    // Link Preview
+    if (/(https?:\/\/[^\s]+)/.test(msg.text || "")) {
+      const url = msg.text.match(/https?:\/\/[^\s]+/)[0];
+      fetch(`https://api.linkpreview.net/?key=123456&q=${encodeURIComponent(url)}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data && data.title) {
+            const preview = document.createElement("div");
+            preview.className = "link-preview";
+            preview.innerHTML = `
+              <img src="${data.image || ''}" alt="">
+              <div class="content">
+                <strong>${data.title}</strong><br>
+                <small>${data.description || ''}</small>
+              </div>
+            `;
+            div.appendChild(preview);
+          }
+        }).catch(()=>{});
     }
 
-    callChannel.onmessage = ({ data }) => {
-      if (data.type === 'offer' && data.from !== userName) {
-        document.getElementById("incomingCall").style.display = "block";
-        document.getElementById("callerInfo").innerText = `Incoming call from ${data.from}`;
+    chat.appendChild(div);
+    chat.scrollTop = chat.scrollHeight;
+
+    // Notifications for new messages
+    if (msg.name !== userName && !isTabActive) {
+      notifySound.play().catch(() => {});
+      if (Notification.permission === "granted") {
+        new Notification(msg.name, { body: msg.text || "Sent a file" });
       }
-    };
-
-    function acceptCall() {
-      alert("Call accepted! (Voice feature placeholder)");
-      document.getElementById("incomingCall").style.display = "none";
     }
+  }
 
-    function rejectCall() {
-      document.getElementById("incomingCall").style.display = "none";
+  // Typing Indicator
+  db.ref("typing").on("value", snap => {
+    const users = [];
+    const now = Date.now();
+    snap.forEach(child => {
+      const key = child.key;
+      if (key === userName) return;
+      const val = child.val();
+      if (val && val.ts && (now - val.ts) < TYPING_EXPIRY) {
+        users.push(key);
+      }
+    });
+    typingStatus.innerText = users.length ? users.join(", ") + " typing..." : "";
+  });
+
+  // Online Status
+  db.ref("usersOnline").on("value", snap => {
+    const onlineUsers = snap.val() || {};
+    document.getElementById('onlineStatus').innerText =
+      onlineUsers[userName] ? "🟢 Online" : "⚪ Offline";
+  });
+
+  // Reset Chat
+  function resetChat() {
+    if (confirm("Are you sure?")) db.ref("messages").remove();
+  }
+
+  // Voice Call Placeholder
+  const callChannel = new BroadcastChannel("webrtc-call");
+  function startCall() {
+    callChannel.postMessage({ type: 'offer', from: userName });
+    alert("Calling... (waiting for response)");
+  }
+  callChannel.onmessage = ({ data }) => {
+    if (data.type === 'offer' && data.from !== userName) {
+      document.getElementById("incomingCall").style.display = "block";
+      document.getElementById("callerInfo").innerText = `Incoming call from ${data.from}`;
     }
+  };
+  function acceptCall() {
+    alert("Call accepted! (Voice feature placeholder)");
+    document.getElementById("incomingCall").style.display = "none";
+  }
+  function rejectCall() {
+    document.getElementById("incomingCall").style.display = "none";
+  }
 
-    authenticate();
-  </script>
+  authenticate();
+  setUserOnlineStatus(true);
+  markAllSeen();
+</script>
 </body>
 </html>
