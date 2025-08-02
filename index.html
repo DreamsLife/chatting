@@ -272,23 +272,7 @@
     });
 
       
-      let typingTimer;
-      const TYPING_TIMEOUT = 3000; // 3 seconds
-
-      messageInput.addEventListener("input", () => {
-    const isTyping = messageInput.value.trim() !== "";
-    if (isTyping) {
-    db.ref("typing/" + userName).set(true);
-    clearTimeout(typingTimer);
-    typingTimer = setTimeout(() => {
-      db.ref("typing/" + userName).remove();
-    }, TYPING_TIMEOUT);
-    } else {
-    db.ref("typing/" + userName).remove();
-    clearTimeout(typingTimer);
-    }
-      });
-
+     
       messageInput.addEventListener("blur", () => {
         db.ref("typing/" + userName).remove();
         clearTimeout(typingTimer);
@@ -354,3 +338,4 @@
   </script>
 </body>
 </html>
+
